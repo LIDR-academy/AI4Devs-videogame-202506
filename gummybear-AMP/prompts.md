@@ -152,3 +152,6 @@ mejora el prompt forzando a que el fondo sea un fondo infinito que será utiliza
 
 **Prompt 39:**
 @main.js en cada pantalla debe existir el boton salir que te lleve a la pantalla inicial
+
+**Prompt 40:**
+@main.js la pagina que muestra el puntaje, el personaje al lado del titulo tambien debe ser acorde con el personaje seleccionado
