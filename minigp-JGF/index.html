@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Carreras - MiniGP</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div id="game-container">
+        <!-- Pantalla de carga -->
+        <div id="loading-screen" class="screen active">
+            <div class="loading-content">
+                <h1>MiniGP Racing</h1>
+                <div class="loading-bar">
+                    <div id="loading-progress" class="loading-progress"></div>
+                </div>
+                <p id="loading-text">Cargando assets...</p>
+            </div>
+        </div>
+
+        <!-- Pantalla de inicio -->
+        <div id="start-screen" class="screen">
+            <div class="start-content">
+                <h1>MiniGP Racing</h1>
+                <div class="instructions">
+                    <h2>Instrucciones</h2>
+                    <ul>
+                        <li><strong>↑</strong> - Acelerar</li>
+                        <li><strong>↓</strong> - Frenar</li>
+                        <li><strong>←</strong> - Girar izquierda</li>
+                        <li><strong>→</strong> - Girar derecha</li>
+                    </ul>
+                    <p>Completa una vuelta en el menor tiempo posible</p>
+                </div>
+                <button id="start-button" class="game-button">Iniciar Carrera</button>
+            </div>
+        </div>
+
+        <!-- Pantalla del juego -->
+        <div id="game-screen" class="screen">
+            <canvas id="game-canvas" width="1200" height="800"></canvas>
+
+            <!-- HUD del juego -->
+            <div id="game-hud">
+                <!-- Cronómetro -->
+                <div id="chrono-display" class="hud-element">
+                    <span id="lap-time">00:00.000</span>
+                </div>
+
+                <!-- Indicador de velocidad -->
+                <div id="speed-display" class="hud-element">
+                    <div id="rpm-indicator"></div>
+                    <div id="speed-text">0 km/h</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla de fin de carrera -->
+        <div id="finish-screen" class="screen">
+            <div class="finish-content">
+                <h1>¡Vuelta Completada!</h1>
+                <div class="final-time">
+                    <h2>Tiempo Final</h2>
+                    <div id="final-time-display">00:00.000</div>
+                </div>
+                <div class="finish-buttons">
+                    <button id="restart-button" class="game-button">Nueva Carrera</button>
+                    <button id="menu-button" class="game-button">Menú Principal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts del juego -->
+    <script src="js/utils.js"></script>
+    <script src="js/assets.js"></script>
+    <script src="js/preloader.js"></script>
+    <script src="js/input.js"></script>
+    <script src="js/car.js"></script>
+    <script src="js/hud.js"></script>
+    <script src="js/game.js"></script>
+</body>
+
+</html>
