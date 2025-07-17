@@ -1,3 +1,7 @@
+Modelo usado: Claude-4-sonnet dentro de Cursor
+
+---
+
 # Prompts Importantes del Desarrollo del Juego de Carreras
 
 ## Prompt 1: Generación de tareas a realizar
