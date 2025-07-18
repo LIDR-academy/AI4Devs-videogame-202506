@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle City Web</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>BATTLE CITY</h1>
+            <div class="game-info">
+                <div class="player-info">
+                    <div class="player1-info">
+                        <span>1P</span>
+                        <span id="player1-score">0</span>
+                        <div class="lives">
+                            <span id="player1-lives">3</span>
+                            <span class="tank-icon">🎯</span>
+                        </div>
+                    </div>
+                    <div class="player2-info">
+                        <span>2P</span>
+                        <span id="player2-score">0</span>
+                        <div class="lives">
+                            <span id="player2-lives">3</span>
+                            <span class="tank-icon">🎯</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="level-info">
+                    <span>LEVEL</span>
+                    <span id="current-level">1</span>
+                </div>
+                <div class="enemies-info">
+                    <span>ENEMIES</span>
+                    <div id="enemy-count">20</div>
+                </div>
+            </div>
+        </div>
+        
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="loadingScreen" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+            <h3>Cargando texturas...</h3>
+            <div style="width: 200px; height: 20px; background: #333; border-radius: 10px; overflow: hidden;">
+                <div id="loadingBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #4CAF50, #8BC34A); transition: width 0.3s;"></div>
+            </div>
+        </div>
+
+        <!-- Menú de selección de jugadores -->
+        <div id="playerSelectionMenu" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); color: white; padding: 40px; border-radius: 15px; text-align: center; display: none; min-width: 400px;">
+            <h2 style="color: #ffff00; margin-bottom: 30px;">BATTLE CITY</h2>
+            <div style="margin-bottom: 30px;">
+                <p style="font-size: 18px; margin-bottom: 20px;">Selecciona el modo de juego:</p>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <button id="singlePlayerButton" style="padding: 15px 30px; font-size: 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.3s;">
+                        🎮 1 JUGADOR
+                    </button>
+                    <button id="multiPlayerButton" style="padding: 15px 30px; font-size: 16px; background: #2196F3; color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.3s;">
+                        🎮🎮 2 JUGADORES
+                    </button>
+                </div>
+            </div>
+            <div style="font-size: 14px; color: #ccc; margin-top: 20px;">
+                <p><strong>Controles:</strong></p>
+                <p>Jugador 1: WASD + Espacio</p>
+                <p>Jugador 2: Flechas + Enter</p>
+            </div>
+        </div>
+        
+        <!-- Pantalla de estadísticas del nivel -->
+        <div id="levelStatsScreen" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); color: white; padding: 30px; border-radius: 15px; text-align: center; display: none; min-width: 400px;">
+            <h2 style="color: #ffff00; margin-bottom: 20px;">¡NIVEL COMPLETADO!</h2>
+            <div id="levelStatsContent" style="text-align: left; margin: 20px 0;">
+                <!-- Contenido dinámico de estadísticas -->
+            </div>
+            <div style="margin-top: 20px; font-size: 14px; color: #ccc;">
+                <span id="nextLevelCountdown">Siguiente nivel en 5 segundos...</span>
+            </div>
+        </div>
+        
+        <div class="game-controls">
+            <div class="instructions" id="gameInstructions" style="display: none;">
+                <h3>Controles:</h3>
+                <p><strong>Jugador 1:</strong> WASD para mover, Espacio para disparar</p>
+                <p><strong>Jugador 2:</strong> Flechas para mover, Enter para disparar</p>
+                <p><strong>Objetivo:</strong> Destruir todos los tanques enemigos y proteger la base (águila)</p>
+            </div>
+            <div class="game-buttons" id="gameButtons" style="display: none;">
+                <button id="startButton" disabled>CARGANDO...</button>
+                <button id="pauseButton" disabled>PAUSA</button>
+                <button id="restartButton">REINICIAR</button>
+                <button id="backToMenuButton">VOLVER AL MENÚ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/textureManager.js"></script>
+    <script src="js/tank.js"></script>
+    <script src="js/enemy.js"></script>
+    <script src="js/bullet.js"></script>
+    <script src="js/powerup.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/game.js"></script>
+    
+    <script>
+        // Inicializar el juego
+        let game;
+        
+        async function initGame() {
+            game = new Game();
+            await game.setupGame();
+            
+            // Ocultar pantalla de carga y mostrar menú de selección
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('playerSelectionMenu').style.display = 'block';
+            
+            // Configurar botones del menú
+            document.getElementById('singlePlayerButton').addEventListener('click', () => {
+                startGame(false); // Un jugador
+            });
+            
+            document.getElementById('multiPlayerButton').addEventListener('click', () => {
+                startGame(true); // Dos jugadores
+            });
+        }
+        
+        function startGame(isMultiplayer) {
+            // Ocultar menú de selección
+            document.getElementById('playerSelectionMenu').style.display = 'none';
+            
+            // Mostrar controles del juego
+            document.getElementById('gameInstructions').style.display = 'block';
+            document.getElementById('gameButtons').style.display = 'block';
+            
+            // Configurar modo de juego
+            if (isMultiplayer) {
+                game.enableMultiplayer();
+                // Mostrar instrucciones para 2 jugadores
+                document.getElementById('gameInstructions').innerHTML = `
+                    <h3>Controles:</h3>
+                    <p><strong>Jugador 1:</strong> WASD para mover, Espacio para disparar</p>
+                    <p><strong>Jugador 2:</strong> Flechas para mover, Enter para disparar</p>
+                    <p><strong>Objetivo:</strong> Destruir todos los tanques enemigos y proteger la base (águila)</p>
+                `;
+            } else {
+                game.disableMultiplayer();
+                // Mostrar instrucciones para 1 jugador
+                document.getElementById('gameInstructions').innerHTML = `
+                    <h3>Controles:</h3>
+                    <p><strong>Jugador 1:</strong> WASD para mover, Espacio para disparar</p>
+                    <p><strong>Objetivo:</strong> Destruir todos los tanques enemigos y proteger la base (águila)</p>
+                `;
+            }
+            
+            // Habilitar botones de control
+            const startButton = document.getElementById('startButton');
+            startButton.textContent = 'INICIAR JUEGO';
+            startButton.disabled = false;
+            
+            // Iniciar el juego automáticamente
+            game.start();
+        }
+        
+        // Inicializar cuando la página se cargue
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>
