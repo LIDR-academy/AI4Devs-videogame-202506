@@ -49,8 +49,32 @@ Utiliza estos prompts en Gemini o cualquier IA generadora de imágenes para obte
 
 ## 4. Fondo (Paisaje único)
 
-**Prompt único y mejorado:**
-> 2D cartoon-style **infinite seamless background** for a children's endless runner video game, transparent background, no shadow, PNG format, vibrant and magical colors, soft gradients, no text, resolution 1280x720px. The scene is a fantastical, imaginary land with floating islands, colorful trees, sparkling rivers, whimsical plants, and gentle hills. **A well-defined, continuous, and visually appealing ground or path runs horizontally across the lower part of the image, with soft grass, magical stones, or colorful earth, making it clear where the character will run. The ground must be wide and flat enough for a character to run on, and should blend smoothly into the landscape.** The left and right edges must blend smoothly and match perfectly, with similar elements and colors at both ends, so the image can be tiled horizontally in an infinite loop without any visible seams or cuts. **The background must look natural and continuous when repeated, creating the effect of an endless, magical world.** The landscape should be highly appealing, imaginative, and enchanting, designed to capture the attention and imagination of young children (5-6 years old), with a sense of wonder and adventure.
+**Prompt especial para SORA (loop perfecto + fantasía infantil):**
+> 2D cartoon seamless infinite background for a children’s endless runner video game, 1280x720px, PNG, transparent background, no shadows.  
+>  
+> **Perfect horizontal tiling:** The left and right edges must match exactly, so when the image is repeated side by side, there are absolutely no visible seams, cuts, or abrupt changes. The start and end of the image must align perfectly, just like in classic platformer backgrounds.  
+>  
+> **Reference:** Use the structure and continuity of classic endless runner and platformer backgrounds (like the attached image: clear sky, stylized clouds, distant mountains, row of trees or bushes, continuous ground).  
+>  
+> **But:** Fill the scene with magical, whimsical, and highly imaginative elements for children: floating islands, magical plants, sparkling rivers, colorful trees with fantasy shapes, glowing stones, enchanted flowers, playful mushrooms, and soft, vibrant gradients.  
+>  
+> The ground must be wide, flat, and uninterrupted, running horizontally across the lower part of the image, with magical grass, colorful earth, and fantasy details.  
+>  
+> **Important:**  
+> - No cut-off or half objects at the left or right edges (no half-trees, half-clouds, or objects starting or ending at the image border).  
+> - The horizon line, trees, mountains, and clouds must be designed so that the left and right edges connect smoothly in color, shape, and height.  
+> - The ground and all background layers must be continuous and uninterrupted across the entire width of the image.  
+> - The background must look natural and continuous when repeated infinitely, with no visible break or mismatch at the edges.  
+>  
+> **Style:** Cartoon, vibrant, playful, and magical. Highly appealing and enchanting for young children (ages 5-6), with a sense of wonder and adventure. Use soft gradients, clear outlines, and a fantasy, friendly atmosphere.  
+>  
+> **Keywords:** seamless, infinite loop, horizontally tileable, cartoon, children, platformer, endless runner, vibrant, playful, magical, fantasy, floating islands, glowing stones, enchanted flowers, sparkling river, colorful trees, whimsical plants, gentle hills, magical grass, continuous ground, no cut-off objects, no seams, PNG, transparent background, 1280x720px  
+>  
+> **Instructions:**  
+> - The left and right edges must be visually identical in color, shape, and element placement, so the image can be repeated horizontally with no visible break.  
+> - Do not place any major objects (trees, clouds, rocks, etc.) at the very edge of the image unless they are perfectly mirrored or continued on the opposite edge.  
+> - The ground/path must be continuous and uninterrupted across the entire width of the image.  
+> - The background should be visually rich, magical, and full of fantasy, but not cluttered, keeping the focus on the running path.
 
 ---
 

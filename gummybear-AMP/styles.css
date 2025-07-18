@@ -1,117 +1,174 @@
-/* Estilos globales */
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
+
 body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif;
-  background: #f3f8ff;
-  color: #333;
-}
-main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   min-height: 100vh;
-  justify-content: center;
+  margin: 0;
+  font-family: 'Fredoka One', 'Comic Sans MS', Comic Sans, cursive, sans-serif;
+  background: linear-gradient(135deg, #b2f0ff 0%, #ffe6fa 100%);
+  position: relative;
+  overflow-x: hidden;
 }
 
-/* Pantallas superpuestas */
-.pantalla-principal,
-.pantalla-nombre,
-.pantalla-seleccion,
-.pantalla-instrucciones,
-.pantalla-fin {
+.fondo-decorativo {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.fondo-decorativo .burbuja {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 50%;
+  opacity: 0.18;
+  background: radial-gradient(circle, #fff 60%, #b2f0ff 100%);
+}
+.fondo-decorativo .estrella {
+  position: absolute;
+  width: 32px; height: 32px;
+  background: url('data:image/svg+xml;utf8,<svg fill="%23fff176" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><polygon points="16,2 20,12 31,12 22,18 25,29 16,22 7,29 10,18 1,12 12,12"/></svg>') no-repeat center/contain;
+  opacity: 0.22;
+}
+
+.pantalla {
+  min-height: 100vh;
+  width: 100vw;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.95);
-  z-index: 10;
-}
-
-.pantalla-juego {
-  display: block;
-  margin: 0 auto;
-  background: #b3e5fc;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  position: relative;
   z-index: 1;
 }
 
-/* Encabezado */
+.tarjeta {
+  background: rgba(255,255,255,0.92);
+  border-radius: 2.5rem;
+  box-shadow: 0 4px 32px #b2f0ff55, 0 1.5px 0 #fff;
+  padding: 2.5rem 3.5rem;
+  margin: 2rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 95vw;
+}
+
 .titulo-juego {
-  font-size: 3rem;
+  font-size: 3.2rem;
   color: #4fc3f7;
-  text-shadow: 2px 2px 0 #fff, 4px 4px 0 #81d4fa;
-  margin-bottom: 1.5rem;
+  text-shadow: 2px 4px 0 #fff, 0 2px 8px #b2f0ff88;
+  font-family: 'Fredoka One', cursive;
+  margin-bottom: 1.2rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
-}
-.titulo-juego img {
-  height: 64px;
-  width: 64px;
+  gap: 1.2rem;
 }
 
-/* Botones grandes */
 .boton-grande {
-  font-size: 2rem;
-  padding: 1rem 2.5rem;
-  border-radius: 2rem;
-  border: none;
+  font-size: 2.1rem;
+  font-family: 'Fredoka One', cursive;
   background: linear-gradient(90deg, #81d4fa 0%, #aed581 100%);
   color: #fff;
-  font-weight: bold;
-  margin: 1rem 0;
+  border: none;
+  border-radius: 2.5rem;
+  padding: 1.1rem 3.5rem;
+  margin: 1.2rem 0 0 0;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-  transition: background 0.2s;
+  box-shadow: 0 2px 12px #b2f0ff55;
+  transition: background 0.2s, transform 0.15s;
+  font-weight: bold;
 }
-.boton-grande:active {
+.boton-grande:hover {
   background: linear-gradient(90deg, #aed581 0%, #81d4fa 100%);
+  transform: scale(1.06);
 }
 
-/* Inputs */
+.boton-salir {
+  font-size: 1.3rem;
+  background: linear-gradient(90deg, #ffb300 0%, #ffd180 100%);
+  color: #fff;
+  border: none;
+  border-radius: 2rem;
+  padding: 0.7rem 2.2rem;
+  cursor: pointer;
+  box-shadow: 0 2px 12px #ffd18055;
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  z-index: 2;
+  font-family: 'Fredoka One', cursive;
+  font-weight: bold;
+  letter-spacing: 0.02em;
+  transition: background 0.2s, transform 0.15s;
+}
+.boton-salir:hover {
+  background: linear-gradient(90deg, #ffd180 0%, #ffb300 100%);
+  transform: scale(1.06);
+}
+
 input[type="text"] {
-  font-size: 2rem;
-  padding: 0.5rem 1rem;
-  border-radius: 1rem;
+  font-size: 1.5rem;
+  border-radius: 1.5rem;
   border: 2px solid #81d4fa;
-  margin-bottom: 1rem;
+  padding: 0.7rem 1.5rem;
+  margin: 1.2rem 0;
   outline: none;
+  font-family: 'Fredoka One', cursive;
+  background: #f8fdff;
+  color: #333;
+  box-shadow: 0 1px 6px #b2f0ff33;
+  transition: border 0.2s;
+}
+input[type="text"]:focus {
+  border: 2.5px solid #4fc3f7;
+}
+
+/* Mensajes de error y leyenda */
+#error-nombre, #error-seleccion {
+  color: #e53935;
+  font-weight: bold;
+  font-size: 1.4rem;
+  background: #fff3cd;
+  border: 2px solid #ffb300;
+  padding: 1rem 2rem;
+  border-radius: 1.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  box-shadow: 0 2px 8px #ffecb355;
 }
 
 /* Responsive */
-@media (max-width: 900px) {
-  .pantalla-juego {
-    width: 95vw;
-    height: 60vw;
-    max-width: 100vw;
-    max-height: 70vh;
+@media (max-width: 600px) {
+  .tarjeta {
+    padding: 1.2rem 0.5rem;
   }
   .titulo-juego {
-    font-size: 2rem;
+    font-size: 2.1rem;
   }
   .boton-grande {
     font-size: 1.2rem;
-    padding: 0.7rem 1.5rem;
+    padding: 0.7rem 1.2rem;
   }
-  input[type="text"] {
-    font-size: 1.2rem;
-  }
+}
+
+/* Canvas runner en pantalla principal */
+#runner-canvas {
+  pointer-events: none;
+  z-index: 2;
 } 
 
-/* Selección de personaje: feedback visual */
-#opciones-personaje img {
-  transition: border-color 0.2s, box-shadow 0.2s;
+/* Fondo decorativo solo en la parte superior durante el juego */
+.fondo-decorativo-juego {
+  position: fixed;
+  left: 0; right: 0; top: 0;
+  height: 38vh;
+  width: 100vw;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
 }
-#opciones-personaje img[style*='border-color: #aed581'] {
-  box-shadow: 0 0 0 6px #aed58155 !important;
-}
-#error-seleccion {
-  color: #e53935;
-  font-size: 1.2rem;
-  margin-top: 0.5rem;
-  display: none;
+.fondo-decorativo-juego .burbuja,
+.fondo-decorativo-juego .estrella {
+  top: auto;
+  bottom: auto;
 } 

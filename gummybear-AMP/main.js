@@ -35,16 +35,20 @@ const TAM_GOLOSINA = 44;
 // --- Pantalla Principal ---
 function mostrarPantallaPrincipal() {
   ocultarTodasLasPantallas();
+  pantallaPrincipal.className = 'pantalla';
   pantallaPrincipal.style.display = 'flex';
   pantallaPrincipal.innerHTML = `
-    <div class="titulo-juego">
-      <img src="assets/gummybear.png" alt="Gummybear" />
-      Gummybear Endless Runner
+    <div class="tarjeta">
+      <div class="titulo-juego" style="position:relative;display:inline-block;">
+        Gummybear Endless Runner
+        <canvas id="runner-canvas" style="position:absolute;left:0;top:0;pointer-events:none;z-index:2;"></canvas>
+      </div>
+      <button class="boton-grande" id="btn-empezar">¡Empezar!</button>
     </div>
-    <button class="boton-grande" id="btn-empezar">¡Empezar!</button>
   `;
   document.getElementById('btn-empezar').onclick = mostrarPantallaNombre;
   estadoActual = 'principal';
+  iniciarAnimacionCorredor();
 }
 
 function agregarBotonSalir(contenedorId) {
@@ -71,17 +75,19 @@ function agregarBotonSalir(contenedorId) {
 // --- Pantalla Nombre ---
 function mostrarPantallaNombre() {
   ocultarTodasLasPantallas();
+  pantallaNombre.className = 'pantalla';
   pantallaNombre.style.display = 'flex';
   pantallaNombre.innerHTML = `
-    <div class="titulo-juego">
-      <img src="assets/gummybear.png" alt="Gummybear" />
-      Escribe tu nombre
+    <div class="tarjeta">
+      <div class="titulo-juego">
+        Escribe tu nombre
+      </div>
+      <input type="text" id="input-nombre" maxlength="12" autocomplete="off" placeholder="Tu nombre" />
+      <div id="error-nombre" style="display:none;">
+        <span style='font-size:2rem;'>⚠️</span> ¡Debes escribir tu nombre para continuar!
+      </div>
+      <button class="boton-grande" id="btn-listo">¡Listo!</button>
     </div>
-    <input type="text" id="input-nombre" maxlength="12" autocomplete="off" placeholder="Tu nombre" />
-    <div id="error-nombre" style="color:#e53935;font-weight:bold;display:none;font-size:1.4rem;background:#fff3cd;border:2px solid #ffb300;padding:1rem 2rem;border-radius:1.5rem;margin-bottom:1rem;text-align:center;box-shadow:0 2px 8px #ffecb355;">
-      <span style='font-size:2rem;'>⚠️</span> ¡Debes escribir tu nombre para continuar!
-    </div>
-    <button class="boton-grande" id="btn-listo">¡Listo!</button>
   `;
   agregarBotonSalir('pantalla-nombre');
   const input = document.getElementById('input-nombre');
@@ -111,17 +117,19 @@ function mostrarPantallaNombre() {
 // --- Pantalla Selección de Personaje ---
 function mostrarPantallaSeleccion() {
   ocultarTodasLasPantallas();
+  pantallaSeleccion.className = 'pantalla';
   pantallaSeleccion.style.display = 'flex';
   pantallaSeleccion.innerHTML = `
-    <div class="titulo-juego">
-      <img src="assets/gummybear.png" alt="Gummybear" />
-      Elige tu personaje
+    <div class="tarjeta">
+      <div class="titulo-juego">
+        Elige tu personaje
+      </div>
+      <div id="opciones-personaje" style="display:flex;gap:2rem;justify-content:center;margin:2rem 0;"></div>
+      <div id="error-seleccion" style="display:none;">
+        <span style='font-size:2rem;'>⚠️</span> ¡Debes elegir un personaje para continuar!
+      </div>
+      <button class="boton-grande" id="btn-seleccion-continuar">Continuar</button>
     </div>
-    <div id="opciones-personaje" style="display:flex;gap:2rem;justify-content:center;margin:2rem 0;"></div>
-    <div id="error-seleccion" style="color:#e53935;font-weight:bold;display:none;font-size:1.4rem;background:#fff3cd;border:2px solid #ffb300;padding:1rem 2rem;border-radius:1.5rem;margin-bottom:1rem;text-align:center;box-shadow:0 2px 8px #ffecb355;">
-      <span style='font-size:2rem;'>⚠️</span> ¡Debes elegir un personaje para continuar!
-    </div>
-    <button class="boton-grande" id="btn-seleccion-continuar">Continuar</button>
   `;
   agregarBotonSalir('pantalla-seleccion');
   const personajes = [
@@ -136,7 +144,7 @@ function mostrarPantallaSeleccion() {
   personajes.forEach((p, idx) => {
     const div = document.createElement('div');
     div.style.textAlign = 'center';
-    div.innerHTML = `<img src="assets/${p.img}" alt="${p.nombre}" style="width:110px;height:110px;border-radius:50%;border:6px solid #81d4fa;cursor:pointer;box-shadow:0 2px 8px #81d4fa55;transition:border-color 0.2s,box-shadow 0.2s;" id="personaje-${idx}"><br><span>${p.nombre}</span>`;
+    div.innerHTML = `<img src="assets/${p.img}" alt="${p.nombre}" style="width:110px;height:110px;border-radius:50%;border:6px solid #81d4fa;cursor:pointer;box-shadow:0 2px 8px #81d4fa55;transition:border-color 0.2s,box-shadow 0.2s;"><br><span>${p.nombre}</span>`;
     div.onclick = () => {
       document.querySelectorAll('#opciones-personaje img').forEach(img => {
         img.style.borderColor = '#81d4fa';
@@ -170,18 +178,35 @@ function mostrarPantallaSeleccion() {
 // --- Pantalla Instrucciones ---
 function mostrarPantallaInstrucciones() {
   ocultarTodasLasPantallas();
+  pantallaInstrucciones.className = 'pantalla';
   pantallaInstrucciones.style.display = 'flex';
   pantallaInstrucciones.innerHTML = `
-    <div class="titulo-juego">
-      <img src="assets/${personajeSeleccionado ? personajeSeleccionado.img : 'gummybear.png'}" alt="Gummybear" />
-      ¿Cómo jugar?
+    <div class="tarjeta">
+      <div class="titulo-juego">
+        <img src="assets/${personajeSeleccionado ? personajeSeleccionado.img : 'gummybear.png'}" alt="Gummybear" style="height:64px;width:64px;object-fit:contain;" />
+        ¿Cómo jugar?
+      </div>
+      <div style="font-size:1.3rem;margin-bottom:1rem;">
+        <b>Salta</b> con ⬆️ <br>
+        <span style='color:#aed581;font-weight:bold;'>¡Evita los obstáculos y recoge golosinas!</span>
+      </div>
+      <div style="margin-bottom:1rem;">Esquiva obstáculos y recoge golosinas para sumar puntos.<br>¡El juego termina si chocas con un obstáculo!</div>
+      <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:1.5rem;gap:0.7rem;">
+        <div style="display:flex;align-items:center;gap:2.5rem;">
+          <div style="text-align:center;">
+            <img src='assets/obstacle1.png' alt='Obstáculo bajo' style='width:54px;height:54px;'><br>
+            <img src='assets/obstacle2.png' alt='Obstáculo alto' style='width:54px;height:54px;'><br>
+            <span style='font-size:1.1rem;color:#e53935;font-weight:bold;'>Obstáculos</span>
+          </div>
+          <div style="text-align:center;">
+            <img src='assets/gomita.png' alt='Gomita' style='width:44px;height:44px;margin:0 4px;'><img src='assets/caramelo.png' alt='Caramelo' style='width:44px;height:44px;margin:0 4px;'><img src='assets/chupetin.png' alt='Chupetín' style='width:44px;height:44px;margin:0 4px;'><br>
+            <span style='font-size:1.1rem;color:#7cb342;font-weight:bold;'>Golosinas</span>
+          </div>
+        </div>
+        <div style='font-size:1rem;color:#888;margin-top:0.3rem;'>Las imágenes muestran los obstáculos y golosinas que aparecen durante el juego.</div>
+      </div>
+      <button class="boton-grande" id="btn-jugar">¡Jugar!</button>
     </div>
-    <div style="font-size:1.3rem;margin-bottom:1rem;">
-      <b>Salta</b> con ⬆️ <br>
-      <span style='color:#aed581;font-weight:bold;'>¡Evita los obstáculos y recoge golosinas!</span>
-    </div>
-    <div style="margin-bottom:1rem;">Esquiva obstáculos y recoge golosinas para sumar puntos.<br>¡El juego termina si chocas con un obstáculo!</div>
-    <button class="boton-grande" id="btn-jugar">¡Jugar!</button>
   `;
   agregarBotonSalir('pantalla-instrucciones');
   document.getElementById('btn-jugar').onclick = iniciarJuego;
@@ -226,6 +251,16 @@ let ultimoObstaculoX = -1000;
 let ultimaGolosinaX = -1000;
 const SEPARACION_MINIMA = 120; // píxeles mínimos entre obstáculo y golosina
 
+// --- Detección de colisión entre dos rectángulos ---
+function colisionanRect(r1, r2) {
+  return (
+    r1.x < r2.x + r2.w &&
+    r1.x + r1.w > r2.x &&
+    r1.y < r2.y + r2.h &&
+    r1.y + r1.h > r2.y
+  );
+}
+
 function iniciarJuego() {
   ocultarTodasLasPantallas();
   canvas.style.display = 'block';
@@ -265,8 +300,17 @@ function bucleJuego() {
     if (Math.abs(x - ultimaGolosinaX) < SEPARACION_MINIMA) {
       x = ultimaGolosinaX + SEPARACION_MINIMA;
     }
-    obstaculos.push({x: x, y: y, w: TAM_OBSTACULO_W, h: h, tipo, sumado: false});
-    ultimoObstaculoX = x;
+    // Nueva lógica: asegurar que no colisiona con ninguna golosina activa
+    let nuevoObstaculo = {x: x, y: y, w: TAM_OBSTACULO_W, h: h, tipo, sumado: false};
+    let colisiona = golosinas.some(g => colisionanRect(
+      nuevoObstaculo,
+      {x: g.x, y: g.y, w: TAM_GOLOSINA, h: TAM_GOLOSINA}
+    ));
+    if (!colisiona) {
+      obstaculos.push(nuevoObstaculo);
+      ultimoObstaculoX = x;
+    }
+    // Si colisiona, no se agrega obstáculo este frame
   }
   for (let i = obstaculos.length - 1; i >= 0; i--) {
     let o = obstaculos[i];
@@ -305,8 +349,17 @@ function bucleJuego() {
     if (Math.abs(x - ultimoObstaculoX) < SEPARACION_MINIMA) {
       x = ultimoObstaculoX + SEPARACION_MINIMA;
     }
-    golosinas.push({x: x, y: y, recogida: false, tipo: tipo});
-    ultimaGolosinaX = x;
+    // Nueva lógica: asegurar que no colisiona con ningún obstáculo activo
+    let nuevaGolosina = {x: x, y: y, recogida: false, tipo: tipo};
+    let colisiona = obstaculos.some(o => colisionanRect(
+      {x: nuevaGolosina.x, y: nuevaGolosina.y, w: TAM_GOLOSINA, h: TAM_GOLOSINA},
+      o
+    ));
+    if (!colisiona) {
+      golosinas.push(nuevaGolosina);
+      ultimaGolosinaX = x;
+    }
+    // Si colisiona, no se agrega golosina este frame
   }
   for (let i = golosinas.length - 1; i >= 0; i--) {
     let g = golosinas[i];
@@ -354,15 +407,18 @@ document.addEventListener('keydown', (e) => {
 // --- Pantalla de Fin de Juego (placeholder) ---
 function mostrarPantallaFin() {
   ocultarTodasLasPantallas();
+  pantallaFin.className = 'pantalla';
   pantallaFin.style.display = 'flex';
   pantallaFin.innerHTML = `
-    <div class="titulo-juego">
-      <img src="assets/${personajeSeleccionado ? personajeSeleccionado.img : 'gummybear.png'}" alt="Gummybear" />
-      ¡Buen intento, ${nombreJugador}!
+    <div class="tarjeta">
+      <div class="titulo-juego">
+        <img src="assets/${personajeSeleccionado ? personajeSeleccionado.img : 'gummybear.png'}" alt="Gummybear" style="height:64px;width:64px;object-fit:contain;" />
+        ¡Buen intento, ${nombreJugador}!
+      </div>
+      <div style="font-size:2rem;margin:1rem 0;">Puntaje: <b>${puntaje}</b></div>
+      <button class="boton-grande" id="btn-reintentar">Intentar de nuevo</button>
+      <button class="boton-grande" id="btn-cambiar">Cambiar personaje</button>
     </div>
-    <div style="font-size:2rem;margin:1rem 0;">Puntaje: <b>${puntaje}</b></div>
-    <button class="boton-grande" id="btn-reintentar">Intentar de nuevo</button>
-    <button class="boton-grande" id="btn-cambiar">Cambiar personaje</button>
   `;
   agregarBotonSalir('pantalla-fin');
   document.getElementById('btn-reintentar').onclick = iniciarJuego;
@@ -379,6 +435,77 @@ function ocultarTodasLasPantallas() {
   pantallaFin.style.display = 'none';
   canvas.style.display = 'none';
 }
+
+// --- Animación del personaje corriendo sobre el título en pantalla principal ---
+function iniciarAnimacionCorredor() {
+  const tituloDiv = document.querySelector('.titulo-juego');
+  const runnerCanvas = document.getElementById('runner-canvas');
+  if (!tituloDiv || !runnerCanvas) return;
+  // Ajustar tamaño del canvas al tamaño del título
+  const rect = tituloDiv.getBoundingClientRect();
+  runnerCanvas.width = rect.width;
+  runnerCanvas.height = 180;
+  runnerCanvas.style.width = rect.width + 'px';
+  runnerCanvas.style.height = '180px';
+  runnerCanvas.style.left = '0px';
+  runnerCanvas.style.top = '-200px'; // Mucho más arriba para quedar fuera del contenedor blanco
+  let ctx = runnerCanvas.getContext('2d');
+  let img = new Image();
+  img.src = 'assets/gummybear.png';
+  let x = -160;
+  let y = 10;
+  let speed = 3;
+  let running = true;
+  function animar() {
+    if (estadoActual !== 'principal') { running = false; return; }
+    ctx.clearRect(0, 0, runnerCanvas.width, runnerCanvas.height);
+    ctx.drawImage(img, x, y, 140, 140);
+    x += speed;
+    if (x > runnerCanvas.width) x = -160;
+    if (running) requestAnimationFrame(animar);
+  }
+  img.onload = () => animar();
+}
+
+// --- Fondo decorativo dinámico mejorado ---
+(function fondoDecorativo() {
+  if (document.getElementById('decorativo-bubbles')) return;
+  const deco = document.createElement('div');
+  // Detectar si estamos en el juego o en pantallas previas
+  let esJuego = false;
+  const checkJuego = () => {
+    // Si el canvas está visible, estamos en el juego
+    const canvas = document.getElementById('game-canvas');
+    return canvas && canvas.style.display === 'block';
+  };
+  const updateClase = () => {
+    esJuego = checkJuego();
+    deco.className = esJuego ? 'fondo-decorativo-juego' : 'fondo-decorativo';
+  };
+  deco.id = 'decorativo-bubbles';
+  // Burbujas
+  for (let i = 0; i < 8; i++) {
+    const b = document.createElement('div');
+    b.className = 'burbuja';
+    b.style.width = b.style.height = (60 + Math.random() * 120) + 'px';
+    b.style.left = (Math.random() * 90) + 'vw';
+    // Si es juego, burbujas solo en la parte superior
+    b.style.top = (Math.random() * 30) + 'vh';
+    deco.appendChild(b);
+  }
+  // Estrellitas
+  for (let i = 0; i < 6; i++) {
+    const e = document.createElement('div');
+    e.className = 'estrella';
+    e.style.left = (Math.random() * 95) + 'vw';
+    // Si es juego, estrellas solo en la parte superior
+    e.style.top = (Math.random() * 28) + 'vh';
+    deco.appendChild(e);
+  }
+  document.body.appendChild(deco);
+  // Actualizar clase cuando cambie de pantalla
+  setInterval(updateClase, 500);
+})();
 
 // Inicialización
 window.onload = mostrarPantallaPrincipal; 

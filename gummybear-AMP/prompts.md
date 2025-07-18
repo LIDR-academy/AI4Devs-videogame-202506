@@ -155,3 +155,34 @@ mejora el prompt forzando a que el fondo sea un fondo infinito que será utiliza
 
 **Prompt 40:**
 @main.js la pagina que muestra el puntaje, el personaje al lado del titulo tambien debe ser acorde con el personaje seleccionado
+
+**Prompt 41:**
+@main.js asegurate que las golosinas con los obstaculos nunca se solapen
+
+**Prompt 42:**
+@main.js en la pantalla principal agrega el efecto para que la imagen del personaje pase corriendo por encima del titulo una y otra vez
+
+**Prompt 43:**
+mejora el prompt, es mandatorio que sea un fondo infinito para ser utilizado en loop y no se noten los cortes entre cada imagen, el inicio y fin deben calzar perfectamente. busca ejemplos en internet o toma como ejemplos mario run o el juego de google chrome del dinosaurio que aparece cuando no hay conexion a internet. la imagen @background.png es un ejemplo de como NO debe ser la imagen ya que salen arboles cortados. Adapta el prompt para SORA, agrega todo el detalle posible, referencia, palabras claves, etc
+
+**Prompt 44:**
+no funciona, modifica el prompt guiandote por esta imagen , fijate especificamente en el inicio y fin que calzan perfectamente
+
+**Prompt 45:**
+@main.js para evitar confusiones, en la pantalla de ¿como jugar? se debe agregar una leyenda para indicar que imagenes corresponden a obstaculos y golosinas, es facil confundirse con las imagenes propias del fondo
+
+**Prompt 46:**
+@main.js mejora el diseño de las pantallas previas al juego, son muy basicas y con fondo blanco, usa paleta de colores suaves y un diseño atractivo para niños de 5-6 años mejora el fondo botones letras
+
+**Prompt 47:**
+@main.js en las pantallas de como jugar y de resultados la imagen del personaje al lado de los titulos, aparece gigante. arreglalo
+
+**Prompt 48:**
+@main.js cambia el estilo del boton salir para que quede acorde al diseño general
+
+en la pantalla propia del juego ajusta los efectos de burbujas y estrellas para q no entorpezcan el juego, en lo posible sobre el personaje, por ejemplo a la altura de montañas y el cielo
+
+en la pantalla inicial sube un poco el personaje corriendo y que quede por sobre del contenedor blanco
+
+**Prompt 49:**
+sube aun mas la imagen del personaje corriendo en la  pagina principal. asegurate que quede fuera el contenedor blanco @main.js 
