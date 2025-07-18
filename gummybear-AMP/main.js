@@ -375,7 +375,7 @@ function bucleJuego() {
   }
   // Física de salto
   if (saltando) {
-    personajeVy += 1.0; // Menor gravedad para salto más largo
+    personajeVy += 0.6; // Menor gravedad para salto más largo
     personajeY += personajeVy;
     if (personajeY >= sueloY) {
       personajeY = sueloY;
@@ -400,7 +400,7 @@ function bucleJuego() {
 document.addEventListener('keydown', (e) => {
   if (estadoActual === 'jugando' && !saltando && e.code === 'ArrowUp') {
     saltando = true;
-    personajeVy = -26; // Salto más largo
+    personajeVy = -20; // Salto más largo
   }
 });
 
