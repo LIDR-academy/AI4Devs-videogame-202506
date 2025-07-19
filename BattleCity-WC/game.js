@@ -190,9 +190,8 @@ function drawMap(levelIdx) {
     for (let y = 0; y < map.length; y++) {
         for (let x = 0; x < map[y].length; x++) {
             switch(map[y][x]) {
-                case 1: // Ladrillo
-                    ctx.fillStyle = '#b55239';
-                    ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                case 1: // Ladrillo realista
+                    drawRealisticBrick(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE);
                     break;
                 case 2: // Acero
                     ctx.fillStyle = '#aaa';
@@ -217,6 +216,66 @@ function drawMap(levelIdx) {
     }
 }
 
+// Función para dibujar ladrillos realistas
+function drawRealisticBrick(x, y, size) {
+    // Color base del ladrillo
+    const brickColor = '#b55239';
+    const mortarColor = '#8b4513';
+    const highlightColor = '#d2691e';
+    const shadowColor = '#8b0000';
+    
+    // Dimensiones del ladrillo individual
+    const brickWidth = size / 2;
+    const brickHeight = size / 3;
+    const mortarThickness = 2;
+    
+    // Fondo del ladrillo completo
+    ctx.fillStyle = brickColor;
+    ctx.fillRect(x, y, size, size);
+    
+    // Dibujar patrón de ladrillos (2x3)
+    for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 2; col++) {
+            const brickX = x + col * brickWidth + (row % 2) * (brickWidth / 2);
+            const brickY = y + row * brickHeight;
+            
+            // Ladrillo individual
+            ctx.fillStyle = brickColor;
+            ctx.fillRect(brickX, brickY, brickWidth - mortarThickness, brickHeight - mortarThickness);
+            
+            // Sombra en la parte inferior y derecha
+            ctx.fillStyle = shadowColor;
+            ctx.fillRect(brickX + brickWidth - mortarThickness - 1, brickY, 1, brickHeight - mortarThickness);
+            ctx.fillRect(brickX, brickY + brickHeight - mortarThickness - 1, brickWidth - mortarThickness, 1);
+            
+            // Resaltado en la parte superior e izquierda
+            ctx.fillStyle = highlightColor;
+            ctx.fillRect(brickX, brickY, brickWidth - mortarThickness, 1);
+            ctx.fillRect(brickX, brickY, 1, brickHeight - mortarThickness);
+            
+            // Textura de superficie (pequeños puntos)
+            ctx.fillStyle = shadowColor;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 2; j++) {
+                    const dotX = brickX + 3 + i * 4;
+                    const dotY = brickY + 3 + j * 4;
+                    ctx.fillRect(dotX, dotY, 1, 1);
+                }
+            }
+        }
+    }
+    
+    // Mortero (juntas entre ladrillos)
+    ctx.fillStyle = mortarColor;
+    // Líneas horizontales
+    ctx.fillRect(x, y + brickHeight - mortarThickness/2, size, mortarThickness);
+    ctx.fillRect(x, y + 2*brickHeight - mortarThickness/2, size, mortarThickness);
+    // Líneas verticales (con offset alternado)
+    ctx.fillRect(x + brickWidth - mortarThickness/2, y, mortarThickness, brickHeight);
+    ctx.fillRect(x + brickWidth - mortarThickness/2, y + brickHeight, mortarThickness, brickHeight);
+    ctx.fillRect(x + brickWidth - mortarThickness/2, y + 2*brickHeight, mortarThickness, brickHeight);
+}
+
 function updateUI() {
     document.getElementById('score').textContent = score;
     document.getElementById('lives').textContent = lives;
@@ -237,6 +296,9 @@ function stopGameLoop() {
 }
 
 function showGameOver() {
+    // Detener música de fondo
+    stopBackgroundMusic();
+    
     document.getElementById('gameCanvas').style.display = 'none';
     document.getElementById('ui').style.display = 'none';
     document.getElementById('gameOverScreen').style.display = 'flex';
@@ -246,6 +308,9 @@ function showGameOver() {
 }
 
 document.getElementById('backToMenuBtn').onclick = () => {
+    // Detener música de fondo
+    stopBackgroundMusic();
+    
     document.getElementById('gameOverScreen').style.display = 'none';
     document.getElementById('startMenu').style.display = 'flex';
     score = 0;
@@ -261,9 +326,14 @@ document.getElementById('backToMenuBtn').onclick = () => {
 // Modificar loseLife para mostrar pantalla de fin de juego
 function loseLife() {
     lives--;
+    
+    // Reproducir sonido de muerte si es la última vida, sino sonido de perder vida
     if (lives <= 0) {
+        playDeathSound();
         showGameOver();
         return;
+    } else {
+        playLoseLifeSound();
     }
     
     // Ocultar jugador temporalmente y limpiar todas las municiones
@@ -412,6 +482,9 @@ function shoot() {
     let by = player.y + PLAYER_SIZE / 2 - BULLET_SIZE / 2;
     let dir = player.dir;
     bullet = { x: bx, y: by, dir: dir };
+    
+    // Reproducir sonido de disparo
+    playPlayerShootSound();
 }
 
 // --- Ajustar colisión de balas con bloques y tanques ---
@@ -477,6 +550,10 @@ function updateBullet() {
     if (block === 1) { // Ladrillo destruible
         map[by][bx] = 0;
         spawnParticles(bx * TILE_SIZE, by * TILE_SIZE);
+        
+        // Reproducir sonido de destrucción de ladrillo
+        playBrickDestroySound();
+        
         bullet = null;
         return;
     }
@@ -589,6 +666,10 @@ function checkBulletEnemyCollision() {
             bullet = null;
             score += 100;
             totalEnemiesEliminated++;
+            
+            // Reproducir sonido de destrucción de enemigo
+            playEnemyDestroySound();
+            
             updateUI();
             break;
         }
@@ -651,6 +732,10 @@ function updateEnemyBullets() {
             if (block === 1) { // Ladrillo destruible
                 map[by][bx] = 0;
                 spawnParticles(bx * TILE_SIZE, by * TILE_SIZE);
+                
+                // Reproducir sonido de destrucción de ladrillo
+                playBrickDestroySound();
+                
                 remove = true;
             }
         }
@@ -719,6 +804,9 @@ function gameLoop() {
     drawEnemyBullets();
     drawParticles();
     if (allEnemiesDefeated()) {
+        // Reproducir sonido de victoria
+        playVictorySound();
+        
         setTimeout(() => {
             currentLevel = (currentLevel + 1) % levels.length;
             startLevel(currentLevel);
@@ -767,6 +855,9 @@ window.onload = () => {
     // Crear imágenes de tanques
     createTankImages();
     
+    // Inicializar sistema de audio
+    initAudio();
+    
     // Mostrar solo el menú de inicio
     document.getElementById('startMenu').style.display = 'flex';
     document.getElementById('ui').style.display = 'none';
@@ -778,6 +869,10 @@ window.onload = () => {
     animateMenuTank();
 
     document.getElementById('startBtn').onclick = () => {
+        // Inicializar audio y reproducir sonido de inicio
+        initAudio();
+        playStartSound();
+        
         document.getElementById('startMenu').style.display = 'none';
         document.getElementById('ui').style.display = 'block';
         document.getElementById('gameCanvas').style.display = 'block';
@@ -788,6 +883,10 @@ window.onload = () => {
         resetPlayer();
         stopGameLoop();
         gameActive = true;
+        
+        // Iniciar música de fondo
+        startBackgroundMusic();
+        
         gameLoopId = requestAnimationFrame(gameLoop);
     };
 }; 
