@@ -43,6 +43,8 @@
             background: #000;
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            display: block;
+            margin: 0 auto;
         }
 
         .score {
@@ -231,6 +233,8 @@
             canvas {
                 max-width: 90vw;
                 height: auto;
+                display: block;
+                margin: 0 auto;
             }
             
             h1 {
@@ -475,7 +479,7 @@
             } else if (e.key.toLowerCase() === 'x') {
                 // Left player laser bullet
                 fireBullet('left');
-            } else if (e.key.toLowerCase() === 'c') {
+            } else if (e.key.toLowerCase() === 'p') {
                 // Right player laser bullet (only in player vs player mode)
                 if (gameMode === 'player') {
                     fireBullet('right');
@@ -686,7 +690,7 @@
             if (gameMode === 'player') {
                 leftPlayerLabel.textContent = 'Player 1';
                 rightPlayerLabel.textContent = 'Player 2';
-                controlsText.innerHTML = '<strong>Controls:</strong> Player 1: W/S keys + X to shoot laser | Player 2: ↑/↓ arrows + C to shoot laser | SPACE to pause | R to restart';
+                controlsText.innerHTML = '<strong>Controls:</strong> Player 1: W/S keys + X to shoot laser | Player 2: ↑/↓ arrows + P to shoot laser | SPACE to pause | R to restart';
             } else {
                 leftPlayerLabel.textContent = 'Player';
                 const difficultyDisplay = aiDifficulty.charAt(0).toUpperCase() + aiDifficulty.slice(1);
@@ -1251,7 +1255,7 @@
             }
             
             if (rightPaddle.canShoot && gameMode === 'player') {
-                ctx.fillText('C', rightPaddle.x + rightPaddle.width + 10, rightPaddle.y + rightPaddle.height/2 + 5);
+                ctx.fillText('P', rightPaddle.x + rightPaddle.width + 10, rightPaddle.y + rightPaddle.height/2 + 5);
             }
             
             // Reset shadow
