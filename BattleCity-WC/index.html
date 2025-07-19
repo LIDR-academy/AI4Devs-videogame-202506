@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle City Clone</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Battle City Clone</h1>
+    <div id="startMenu">
+        <div id="menuBox">
+            <img src="assets/ai4devs.avif" alt="AI4Devs Logo" class="menu-logo" width="96" height="96" style="margin: 0 auto 24px auto; display: block; border-radius: 12px; box-shadow: 0 0 12px #f1c40f44;">
+            <h2>BATTLE CITY</h2>
+            <canvas id="menuTankCanvas" width="80" height="80"></canvas>
+            <button id="startBtn">START</button>
+        </div>
+    </div>
+    <div id="gameContainer">
+        <div id="ui" style="display:none;">
+            <div id="infoPanel">
+                <div class="infoItem"><span class="infoLabel">Puntaje</span><span id="score">0</span></div>
+                <div class="infoItem"><span class="infoLabel">Vidas</span><span id="lives">3</span></div>
+                <div class="infoItem"><span class="infoLabel">Nivel</span><span id="level">1</span></div>
+                <div class="infoItem"><span class="infoLabel">Enemigos</span><span id="enemiesLeft">10</span></div>
+            </div>
+        </div>
+        <canvas id="gameCanvas" width="416" height="416" style="display:none;"></canvas>
+        <div id="controlsPanel">
+            <div class="controlsTitle">Controles</div>
+            <div class="controlsDesc">
+                <div class="controlsRow">
+                    <span class="keyVisual">Flechas</span>
+                    <span class="controlText">Mover tanque</span>
+                </div>
+                <div class="controlsRow">
+                    <span class="keyVisual">Espacio</span>
+                    <span class="controlText">Disparar</span>
+                </div>
+            </div>
+            <div class="controlsKeys">
+                <div class="keyRow">
+                    <span class="keyVisual">&#8593;</span>
+                </div>
+                <div class="keyRow">
+                    <span class="keyVisual">&#8592;</span>
+                    <span class="keyVisual">&#8595;</span>
+                    <span class="keyVisual">&#8594;</span>
+                </div>
+                <div class="keyRow">
+                    <span class="keyVisual">Espacio</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="gameOverScreen" style="display:none;">
+        <div id="gameOverBox">
+            <img src="assets/ai4devs.avif" alt="AI4Devs Logo" class="menu-logo" width="96" height="96" style="margin: 0 auto 24px auto; display: block; border-radius: 12px; box-shadow: 0 0 12px #f44a;">
+            <h2>GAME OVER</h2>
+            <p id="finalScore">Puntaje: 0</p>
+            <p id="finalEnemies">Enemigos eliminados: 0</p>
+            <button id="backToMenuBtn">Volver al menú</button>
+        </div>
+    </div>
+
+    <script src="levels.js"></script>
+    <script src="game.js"></script>
+</body>
+</html> 
