@@ -2,6 +2,10 @@ class Game {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
+        
+        // Configurar el tamaño del canvas para mantenerlo dentro del contenedor
+        this.initializeCanvas();
+        
         this.running = false;
         this.paused = false;
         this.gameOver = false;
@@ -51,8 +55,8 @@ class Game {
         this.lastFrameTime = 0;
         this.deltaTime = 0;
         
-        // Inicializar el gestor de escalado responsivo
-        responsiveManager.initialize(this.canvas);
+        // No usar el responsiveManager conflictivo
+        // responsiveManager.initialize(this.canvas);
     }
 
     async setupGame() {
@@ -80,21 +84,206 @@ class Game {
         window.game = this;
     }
 
+    initializeCanvas() {
+        // Usar las constantes correctas del juego
+        const baseWidth = GAME_CONFIG.CANVAS_WIDTH;   // 832px
+        const baseHeight = GAME_CONFIG.CANVAS_HEIGHT; // 832px
+        
+        // Configurar el tamaño interno del canvas
+        this.canvas.width = baseWidth;
+        this.canvas.height = baseHeight;
+        
+        // Configurar el contexto para pixel art
+        this.ctx.imageSmoothingEnabled = false;
+        this.ctx.mozImageSmoothingEnabled = false;
+        this.ctx.webkitImageSmoothingEnabled = false;
+        this.ctx.msImageSmoothingEnabled = false;
+        
+        // Aplicar tamaño inicial responsivo inmediatamente
+        this.resizeCanvasToFit();
+        
+        // Agregar listener para redimensionamiento de ventana
+        window.addEventListener('resize', () => this.resizeCanvasToFit());
+        
+        // Función global para debug
+        window.debugResize = () => {
+            console.log('=== DEBUG RESIZE ===');
+            console.log('Window size:', window.innerWidth, 'x', window.innerHeight);
+            console.log('Canvas current size:', this.canvas.style.width, 'x', this.canvas.style.height);
+            console.log('Canvas internal size:', this.canvas.width, 'x', this.canvas.height);
+            
+            // Información del contenedor
+            const container = this.canvas.parentElement;
+            if (container) {
+                console.log('Container size:', container.offsetWidth, 'x', container.offsetHeight);
+            }
+            
+            this.resizeCanvasToFit();
+            console.log('Canvas after resize:', this.canvas.style.width, 'x', this.canvas.style.height);
+        };
+        
+        // Función para forzar el canvas a usar todo el espacio de pantalla
+        window.forceFullMap = () => {
+            console.log('=== MAXIMIZANDO CANVAS A PANTALLA COMPLETA ===');
+            
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            // Solo considerar header e info, ignorar controles
+            const header = document.querySelector('.game-header');
+            const info = document.querySelector('.game-info');
+            const headerHeight = header ? header.getBoundingClientRect().height : 60;
+            const infoHeight = info ? info.getBoundingClientRect().height : 30;
+            
+            const availableWidth = windowWidth - 15;
+            const availableHeight = windowHeight - headerHeight - infoHeight - 15;
+            
+            // Escala máxima posible
+            const scaleX = availableWidth / GAME_CONFIG.CANVAS_WIDTH;
+            const scaleY = availableHeight / GAME_CONFIG.CANVAS_HEIGHT;
+            const maxScale = Math.min(scaleX, scaleY);
+            
+            const forceWidth = Math.floor(GAME_CONFIG.CANVAS_WIDTH * maxScale);
+            const forceHeight = Math.floor(GAME_CONFIG.CANVAS_HEIGHT * maxScale);
+            
+            this.canvas.style.width = `${forceWidth}px`;
+            this.canvas.style.height = `${forceHeight}px`;
+            
+            console.log(`🔧 Canvas maximizado: ${forceWidth}x${forceHeight} (escala: ${maxScale.toFixed(2)})`);
+            console.log(`📺 Usa ${((forceHeight / availableHeight) * 100).toFixed(1)}% de la altura disponible`);
+            console.log(`📜 Los controles están abajo, usa scroll para acceder`);
+        };
+        
+        // Función para asegurar que los controles sean visibles (ya no necesaria)
+        window.showControls = () => {
+            console.log('=== SHOWING CONTROLS ===');
+            console.log('Sin scroll habilitado, todos los controles deberían ser visibles');
+        };
+        
+        console.log(`Canvas inicializado: ${this.canvas.width}x${this.canvas.height}`);
+        console.log('Usa window.debugResize() en la consola para debug manual');
+    }
+
+    resizeCanvasToFit() {
+        // Esperar un frame para que el DOM se actualice
+        requestAnimationFrame(() => {
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            console.log(`🖥️  Ventana: ${windowWidth}x${windowHeight}`);
+            
+            // Solo considerar el header para el cálculo del espacio disponible
+            const header = document.querySelector('.game-header');
+            const info = document.querySelector('.game-info');
+            
+            // Calcular altura ocupada SOLO por header e info (los controles no importan)
+            let headerHeight = header ? header.getBoundingClientRect().height : 60;
+            let infoHeight = info ? info.getBoundingClientRect().height : 30;
+            
+            // Padding y márgenes del contenedor
+            const containerPadding = 15;
+            
+            // Calcular espacio disponible para el canvas (IGNORAR controles)
+            const totalUIHeight = headerHeight + infoHeight + containerPadding;
+            const availableWidth = windowWidth - 20;
+            const availableHeight = windowHeight - totalUIHeight;
+            
+            console.log(`📏 UI Heights - Header: ${headerHeight}px, Info: ${infoHeight}px (controles ignorados)`);
+            console.log(`📦 Espacio disponible para canvas: ${availableWidth}x${availableHeight}`);
+            
+            // Asegurar mínimos
+            const minAvailableWidth = Math.max(availableWidth, 200);
+            const minAvailableHeight = Math.max(availableHeight, 200);
+            
+            // Calcular escala basada en el espacio disponible (SIN considerar controles)
+            const scaleX = minAvailableWidth / GAME_CONFIG.CANVAS_WIDTH;
+            const scaleY = minAvailableHeight / GAME_CONFIG.CANVAS_HEIGHT;
+            const baseScale = Math.min(scaleX, scaleY);
+            
+            // Usar toda la pantalla disponible (más agresivo)
+            const finalScale = Math.max(0.3, Math.min(baseScale * 0.98, 1.5)); // Permitir hasta 150% y usar 98% del espacio
+            
+            console.log(`📐 Escalas - X: ${scaleX.toFixed(3)}, Y: ${scaleY.toFixed(3)}, Base: ${baseScale.toFixed(3)}, Final: ${finalScale.toFixed(3)}`);
+            
+            // Calcular nuevas dimensiones
+            const newWidth = Math.floor(GAME_CONFIG.CANVAS_WIDTH * finalScale);
+            const newHeight = Math.floor(GAME_CONFIG.CANVAS_HEIGHT * finalScale);
+            
+            // Aplicar tamaño al canvas
+            this.canvas.style.width = `${newWidth}px`;
+            this.canvas.style.height = `${newHeight}px`;
+            this.canvas.style.display = 'block';
+            this.canvas.style.margin = '3px auto';
+            this.canvas.style.border = '1px solid #000';
+            this.canvas.style.boxSizing = 'border-box';
+            
+            // Remover cualquier limitación de tamaño
+            this.canvas.style.maxWidth = 'none';
+            this.canvas.style.maxHeight = 'none';
+            this.canvas.style.minWidth = 'none';
+            this.canvas.style.minHeight = 'none';
+            
+            console.log(`🎯 Canvas final: ${newWidth}x${newHeight} (escala: ${finalScale.toFixed(2)})`);
+            console.log(`📊 El canvas ocupa ${((newHeight / availableHeight) * 100).toFixed(1)}% del espacio disponible`);
+            console.log(`✅ Los controles quedarán debajo (accesibles con scroll)`);
+            
+            // Forzar re-render
+            if (this.ctx && this.map) {
+                setTimeout(() => this.draw(), 50);
+            }
+        });
+    }
+
     async loadLevels() {
         try {
             const response = await fetch('levels/levels.json');
-            this.levelData = await response.json();
+            const originalLevels = await response.json();
+            
+            // Inicializar el generador de mapas
+            this.mapGenerator = new MapGenerator();
+            
+            // Validar y ajustar niveles para tener 40-50% de ocupación
+            console.log("🔍 Validando ocupación de mapas...");
+            const analysis = this.mapGenerator.analyzeLevels(originalLevels);
+            
+            if (analysis.needAdjustment > 0) {
+                console.log(`⚙️  Ajustando ${analysis.needAdjustment} niveles para cumplir ocupación 40-50%`);
+                this.levelData = this.mapGenerator.adjustAllLevels(originalLevels);
+                console.log("✅ Niveles ajustados automáticamente");
+            } else {
+                console.log("✅ Todos los niveles ya cumplen con la ocupación requerida");
+                this.levelData = originalLevels;
+            }
+            
         } catch (error) {
             console.warn('No se pudieron cargar los niveles, usando niveles por defecto');
             this.levelData = null;
+            this.mapGenerator = new MapGenerator();
         }
     }
 
     getCurrentLevelData() {
-        if (!this.levelData) return null;
+        if (!this.levelData) {
+            // Si no hay datos de nivel, generar uno proceduralmente
+            if (this.mapGenerator) {
+                console.log(`🎲 Generando nivel ${this.currentLevel} proceduralmente`);
+                return this.mapGenerator.generateBalancedMap(this.currentLevel);
+            }
+            return null;
+        }
         
         const levelKey = `level${this.currentLevel}`;
-        return this.levelData[levelKey] || null;
+        let levelData = this.levelData[levelKey];
+        
+        // Si el nivel no existe, generar uno nuevo
+        if (!levelData && this.mapGenerator) {
+            console.log(`🎲 Generando nivel ${this.currentLevel} (no existe en datos)`);
+            levelData = this.mapGenerator.generateBalancedMap(this.currentLevel);
+            // Guardar el nivel generado para uso futuro
+            this.levelData[levelKey] = levelData;
+        }
+        
+        return levelData || null;
     }
 
     createPlayers() {
@@ -133,12 +322,14 @@ class Game {
         const pauseButton = document.getElementById('pauseButton');
         const restartButton = document.getElementById('restartButton');
         const backToMenuButton = document.getElementById('backToMenuButton');
+        const resizeButton = document.getElementById('resizeButton');
         
         console.log('Found buttons:', {
             startButton: !!startButton,
             pauseButton: !!pauseButton,
             restartButton: !!restartButton,
-            backToMenuButton: !!backToMenuButton
+            backToMenuButton: !!backToMenuButton,
+            resizeButton: !!resizeButton
         });
         
         startButton.addEventListener('click', () => {
@@ -159,6 +350,11 @@ class Game {
         backToMenuButton.addEventListener('click', () => {
             console.log('Back to menu button clicked');
             this.backToMenu();
+        });
+        
+        resizeButton.addEventListener('click', () => {
+            console.log('Resize button clicked');
+            this.resizeCanvasToFit();
         });
         
         console.log('Event listeners set up successfully');
@@ -975,4 +1171,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Mostrar canvas inicial
     game.draw();
+    
+    // Redimensionar canvas múltiples veces para asegurar que funcione
+    game.resizeCanvasToFit();
+    
+    setTimeout(() => {
+        game.resizeCanvasToFit();
+        console.log('Canvas ajustado después de 100ms');
+    }, 100);
+    
+    setTimeout(() => {
+        game.resizeCanvasToFit();
+        console.log('Canvas ajustado después de 500ms');
+    }, 500);
+    
+    setTimeout(() => {
+        game.resizeCanvasToFit();
+        console.log('Canvas ajustado después de 1000ms');
+    }, 1000);
+    
+    // Ajuste final después de que el DOM esté completamente estabilizado
+    setTimeout(() => {
+        game.resizeCanvasToFit();
+        console.log('Canvas ajustado después de 2000ms - FINAL');
+        console.log('✅ FUNCIONES DISPONIBLES EN LA CONSOLA:');
+        console.log('• window.forceFullMap() - Forzar vista completa del mapa');
+        console.log('• window.debugResize() - Información de debug del redimensionamiento');
+        console.log('• window.showControls() - Hacer scroll a los controles si no se ven');
+        console.log('Si no ves los botones, ejecuta: window.showControls()');
+    }, 2000);
 });
