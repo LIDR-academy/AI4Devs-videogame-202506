@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Juego de Memoria - Emojis</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="database.js"></script>
 </head>
 <body>
     <div class="container">
@@ -32,6 +33,9 @@
         <div class="controls">
             <button id="start-btn" class="btn btn-primary">🎮 Comenzar Juego</button>
             <button id="next-level-btn" class="btn btn-success hidden">➡️ Siguiente Nivel</button>
+            <button id="finish-game-btn" class="btn btn-danger hidden">🏁 Finalizar Juego</button>
+            <button id="rankings-btn" class="btn btn-secondary">🏆 Rankings</button>
+            <button id="help-btn" class="btn btn-info">❓ Ayuda</button>
         </div>
 
         <!-- Configuraciones del juego -->
@@ -82,6 +86,316 @@
             </div>
         </div>
 
+        <!-- Modal de nombre inicial -->
+        <div id="name-input-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>👋 ¡Bienvenido al Juego de Memoria!</h2>
+                </div>
+                <div class="modal-body">
+                    <p>Para comenzar a jugar y aparecer en los rankings, por favor introduce tu nombre:</p>
+                    <div class="input-group">
+                        <input type="text" id="initial-player-name" placeholder="Escribe tu nombre aquí..." maxlength="20">
+                        <button id="start-with-name" class="btn btn-primary">🚀 ¡Empezar a Jugar!</button>
+                    </div>
+                    <p class="note">💡 Tu nombre se guardará para futuras partidas</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Rankings -->
+        <div id="rankings-modal" class="modal hidden">
+            <div class="modal-content rankings-dashboard">
+                <div class="modal-header">
+                    <h2>🏆 Dashboard de Rankings</h2>
+                    <button id="close-rankings" class="btn btn-close">×</button>
+                </div>
+                
+                <div class="dashboard-tabs">
+                    <button class="tab-btn active" data-tab="global">🌍 Global</button>
+                    <button class="tab-btn" data-tab="levels">📊 Por Nivel</button>
+                    <button class="tab-btn" data-tab="stats">📈 Estadísticas</button>
+                    <button class="tab-btn" data-tab="search">🔍 Buscar</button>
+                </div>
+
+                <div class="dashboard-content">
+                    <!-- Tab Global -->
+                    <div id="global-tab" class="tab-content active">
+                        <div class="rankings-header">
+                            <h3>🥇 Top 10 Mundial</h3>
+                            <div class="player-input-section">
+                                <input type="text" id="player-name" placeholder="Tu nombre" maxlength="20">
+                                <button id="save-name" class="btn btn-small">💾 Guardar</button>
+                            </div>
+                        </div>
+                        <div class="rankings-table">
+                            <div class="table-header">
+                                <span class="pos">#</span>
+                                <span class="name">Jugador</span>
+                                <span class="score">Puntuación</span>
+                                <span class="level">Nivel</span>
+                                <span class="time">Tiempo</span>
+                                <span class="efficiency">Eficiencia</span>
+                            </div>
+                            <div id="global-rankings" class="table-body">
+                                <!-- Rankings se cargan dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Por Niveles -->
+                    <div id="levels-tab" class="tab-content">
+                        <div class="level-selector">
+                            <button class="level-btn active" data-level="1">Nivel 1</button>
+                            <button class="level-btn" data-level="2">Nivel 2</button>
+                            <button class="level-btn" data-level="3">Nivel 3</button>
+                            <button class="level-btn" data-level="4">Nivel 4</button>
+                            <button class="level-btn" data-level="5">Nivel 5</button>
+                        </div>
+                        <div id="level-rankings" class="rankings-table">
+                            <!-- Rankings por nivel -->
+                        </div>
+                    </div>
+
+                    <!-- Tab Estadísticas -->
+                    <div id="stats-tab" class="tab-content">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">🎮</div>
+                                <div class="stat-info">
+                                    <div class="stat-value" id="total-games">-</div>
+                                    <div class="stat-label">Total Partidas</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">🏆</div>
+                                <div class="stat-info">
+                                    <div class="stat-value" id="best-score-stat">-</div>
+                                    <div class="stat-label">Mejor Puntuación</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">⏱️</div>
+                                <div class="stat-info">
+                                    <div class="stat-value" id="avg-time">-</div>
+                                    <div class="stat-label">Tiempo Promedio</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">🎯</div>
+                                <div class="stat-info">
+                                    <div class="stat-value" id="avg-moves">-</div>
+                                    <div class="stat-label">Movimientos Promedio</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="charts-section">
+                            <div class="chart-card">
+                                <h4>📊 Distribución por Niveles</h4>
+                                <div id="levels-chart" class="chart-container">
+                                    <!-- Chart se genera dinámicamente -->
+                                </div>
+                            </div>
+                            <div class="chart-card">
+                                <h4>📈 Progreso Últimos 7 Días</h4>
+                                <div id="progress-chart" class="chart-container">
+                                    <!-- Chart se genera dinámicamente -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Búsqueda -->
+                    <div id="search-tab" class="tab-content">
+                        <div class="search-section">
+                            <input type="text" id="search-player" placeholder="Buscar por nombre de jugador...">
+                            <button id="search-btn" class="btn btn-primary">🔍 Buscar</button>
+                        </div>
+                        <div id="search-results" class="rankings-table">
+                            <!-- Resultados de búsqueda -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Ayuda -->
+        <div id="help-modal" class="modal hidden">
+            <div class="modal-content help-content">
+                <div class="modal-header">
+                    <h2>❓ Guía de Juego</h2>
+                    <button id="close-help" class="btn btn-close">×</button>
+                </div>
+                
+                <div class="help-tabs">
+                    <button class="help-tab-btn active" data-tab="powerups">⚡ Power-ups</button>
+                    <button class="help-tab-btn" data-tab="controls">🎮 Controles</button>
+                    <button class="help-tab-btn" data-tab="scoring">🏆 Puntuación</button>
+                    <button class="help-tab-btn" data-tab="tips">💡 Consejos</button>
+                </div>
+
+                <div class="help-content-area">
+                    <!-- Tab Power-ups -->
+                    <div id="powerups-help" class="help-tab-content active">
+                        <h3>⚡ Power-ups Disponibles</h3>
+                        
+                        <div class="powerup-explanation">
+                            <div class="powerup-card">
+                                <div class="powerup-visual">
+                                    <span class="powerup-icon-large">💡</span>
+                                    <span class="powerup-name">Pista (Hint)</span>
+                                    <span class="powerup-uses">3 usos por nivel</span>
+                                </div>
+                                <div class="powerup-description">
+                                    <h4>¿Qué hace?</h4>
+                                    <p>Revela una pareja de cartas durante 3 segundos con un brillante efecto dorado.</p>
+                                    <h4>¿Cuándo usarlo?</h4>
+                                    <p>Perfecto cuando te sientes bloqueado o quieres ahorrar tiempo en niveles difíciles.</p>
+                                    <h4>Costo</h4>
+                                    <p>-50 puntos por cada uso</p>
+                                    <div class="shortcut">Tecla rápida: <kbd>1</kbd></div>
+                                </div>
+                            </div>
+
+                            <div class="powerup-card">
+                                <div class="powerup-visual">
+                                    <span class="powerup-icon-large">❄️</span>
+                                    <span class="powerup-name">Congelar (Freeze)</span>
+                                    <span class="powerup-uses">2 usos por nivel</span>
+                                </div>
+                                <div class="powerup-description">
+                                    <h4>¿Qué hace?</h4>
+                                    <p>Detiene el temporizador durante 10 segundos. Las cartas adquieren un tono azulado.</p>
+                                    <h4>¿Cuándo usarlo?</h4>
+                                    <p>Ideal cuando se acaba el tiempo o necesitas concentrarte sin presión temporal.</p>
+                                    <h4>Costo</h4>
+                                    <p>Sin penalización en puntuación</p>
+                                    <div class="shortcut">Tecla rápida: <kbd>2</kbd></div>
+                                </div>
+                            </div>
+
+                            <div class="powerup-card">
+                                <div class="powerup-visual">
+                                    <span class="powerup-icon-large">🔀</span>
+                                    <span class="powerup-name">Reorganizar (Shuffle)</span>
+                                    <span class="powerup-uses">1 uso por nivel</span>
+                                </div>
+                                <div class="powerup-description">
+                                    <h4>¿Qué hace?</h4>
+                                    <p>Baraja todas las cartas no emparejadas, cambiando completamente el tablero.</p>
+                                    <h4>¿Cuándo usarlo?</h4>
+                                    <p>Úsalo estratégicamente cuando las cartas estén en posiciones difíciles de recordar.</p>
+                                    <h4>Costo</h4>
+                                    <p>Sin penalización en puntuación</p>
+                                    <div class="shortcut">Tecla rápida: <kbd>3</kbd></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Controles -->
+                    <div id="controls-help" class="help-tab-content">
+                        <h3>🎮 Controles del Juego</h3>
+                        <div class="controls-grid">
+                            <div class="control-item">
+                                <kbd>Click</kbd>
+                                <span>Voltear cartas</span>
+                            </div>
+                            <div class="control-item">
+                                <kbd>1</kbd>
+                                <span>Usar power-up Pista</span>
+                            </div>
+                            <div class="control-item">
+                                <kbd>2</kbd>
+                                <span>Usar power-up Congelar</span>
+                            </div>
+                            <div class="control-item">
+                                <kbd>3</kbd>
+                                <span>Usar power-up Reorganizar</span>
+                            </div>
+                            <div class="control-item">
+                                <kbd>Escape</kbd>
+                                <span>Cerrar mensajes</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Puntuación -->
+                    <div id="scoring-help" class="help-tab-content">
+                        <h3>🏆 Sistema de Puntuación</h3>
+                        <div class="scoring-breakdown">
+                            <div class="score-item">
+                                <span class="score-type">Base</span>
+                                <span class="score-formula">Parejas × 100</span>
+                                <span class="score-example">7 pares = 700 pts</span>
+                            </div>
+                            <div class="score-item positive">
+                                <span class="score-type">Bonus Tiempo</span>
+                                <span class="score-formula">Tiempo restante × 5</span>
+                                <span class="score-example">30s = +150 pts</span>
+                            </div>
+                            <div class="score-item positive">
+                                <span class="score-type">Juego Perfecto</span>
+                                <span class="score-formula">Sin errores</span>
+                                <span class="score-example">+500 pts</span>
+                            </div>
+                            <div class="score-item positive">
+                                <span class="score-type">Multiplicador Nivel</span>
+                                <span class="score-formula">Nivel × 0.1 + 1</span>
+                                <span class="score-example">Nivel 3 = ×1.3</span>
+                            </div>
+                            <div class="score-item negative">
+                                <span class="score-type">Penalización Movimientos</span>
+                                <span class="score-formula">Movimientos extra × 10</span>
+                                <span class="score-example">3 extra = -30 pts</span>
+                            </div>
+                            <div class="score-item negative">
+                                <span class="score-type">Penalización Pistas</span>
+                                <span class="score-formula">Pistas usadas × 50</span>
+                                <span class="score-example">2 pistas = -100 pts</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Consejos -->
+                    <div id="tips-help" class="help-tab-content">
+                        <h3>💡 Consejos Estratégicos</h3>
+                        <div class="tips-list">
+                            <div class="tip-item">
+                                <span class="tip-icon">🧠</span>
+                                <div class="tip-content">
+                                    <h4>Memoriza Patrones</h4>
+                                    <p>Crea asociaciones mentales entre los emojis y sus posiciones. Por ejemplo: "El 🐶 está arriba a la izquierda".</p>
+                                </div>
+                            </div>
+                            <div class="tip-item">
+                                <span class="tip-icon">⚡</span>
+                                <div class="tip-content">
+                                    <h4>Usa Power-ups Estratégicamente</h4>
+                                    <p>Guarda las pistas para los niveles más difíciles. El congelamiento es perfecto cuando quedan pocos segundos.</p>
+                                </div>
+                            </div>
+                            <div class="tip-item">
+                                <span class="tip-icon">🎯</span>
+                                <div class="tip-content">
+                                    <h4>Juega con Método</h4>
+                                    <p>Voltea cartas sistemáticamente (fila por fila) en lugar de aleatoriamente. Esto ayuda a crear un mapa mental.</p>
+                                </div>
+                            </div>
+                            <div class="tip-item">
+                                <span class="tip-icon">⏱️</span>
+                                <div class="tip-content">
+                                    <h4>Gestiona el Tiempo</h4>
+                                    <p>No te apresures al principio. Es mejor ser preciso que rápido. La velocidad viene con la práctica.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Información del juego -->
         <div class="game-stats">
             <div class="stat">
@@ -95,6 +409,11 @@
         </div>
     </div>
 
+        <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+    <script src="database.js"></script>
     <script src="script.js"></script>
+</body>
+</html>
 </body>
 </html>

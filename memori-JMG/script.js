@@ -89,6 +89,25 @@ class MemoryGame {
         this.hintCount = document.getElementById('hint-count');
         this.freezeCount = document.getElementById('freeze-count');
         this.shuffleCount = document.getElementById('shuffle-count');
+        
+        // Nuevos elementos para Fase 4 - Rankings y Ayuda
+        this.rankingsBtn = document.getElementById('rankings-btn');
+        this.helpBtn = document.getElementById('help-btn');
+        this.rankingsModal = document.getElementById('rankings-modal');
+        this.helpModal = document.getElementById('help-modal');
+        this.closeRankings = document.getElementById('close-rankings');
+        this.closeHelp = document.getElementById('close-help');
+        this.playerNameInput = document.getElementById('player-name');
+        this.saveNameBtn = document.getElementById('save-name');
+        this.finishGameBtn = document.getElementById('finish-game-btn');
+        
+        // Modal de nombre inicial
+        this.nameInputModal = document.getElementById('name-input-modal');
+        this.initialPlayerNameInput = document.getElementById('initial-player-name');
+        this.startWithNameBtn = document.getElementById('start-with-name');
+        
+        this.currentPlayerName = null;
+        this.needsPlayerName = true;
     }
     
     /**
@@ -118,6 +137,34 @@ class MemoryGame {
             console.log(`⚡ Power-ups ${this.powerUpsEnabled ? 'activados' : 'desactivados'}`);
         });
         
+        // Event listeners para rankings y ayuda
+        this.rankingsBtn.addEventListener('click', () => this.openRankings());
+        this.helpBtn.addEventListener('click', () => this.openHelp());
+        this.closeRankings.addEventListener('click', () => this.closeRankingsModal());
+        this.closeHelp.addEventListener('click', () => this.closeHelpModal());
+        this.saveNameBtn.addEventListener('click', () => this.savePlayerName());
+        this.finishGameBtn.addEventListener('click', () => this.finishGame());
+        
+        // Event listeners para modal de nombre inicial
+        this.startWithNameBtn.addEventListener('click', () => this.setInitialPlayerName());
+        this.initialPlayerNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.setInitialPlayerName();
+        });
+        
+        // Event listeners para pestañas del modal de rankings
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
+        });
+        
+        // Event listeners para cerrar modales al hacer clic en el fondo
+        this.rankingsModal.addEventListener('click', (e) => {
+            if (e.target === this.rankingsModal) this.closeRankingsModal();
+        });
+        
+        this.helpModal.addEventListener('click', (e) => {
+            if (e.target === this.helpModal) this.closeHelpModal();
+        });
+        
         // Event listeners para power-ups
         this.hintPowerup.addEventListener('click', () => this.usePowerUp('hint'));
         this.freezePowerup.addEventListener('click', () => this.usePowerUp('freeze'));
@@ -125,8 +172,14 @@ class MemoryGame {
         
         // Event listener para cerrar mensaje con Escape
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !this.gameMessage.classList.contains('hidden')) {
-                this.hideMessage();
+            if (e.key === 'Escape') {
+                if (!this.gameMessage.classList.contains('hidden')) {
+                    this.hideMessage();
+                } else if (!this.rankingsModal.classList.contains('hidden')) {
+                    this.closeRankingsModal();
+                } else if (!this.helpModal.classList.contains('hidden')) {
+                    this.closeHelpModal();
+                }
             }
             
             // Teclas rápidas para power-ups
@@ -141,12 +194,37 @@ class MemoryGame {
         document.querySelectorAll('.btn').forEach(btn => {
             btn.addEventListener('click', (e) => e.preventDefault());
         });
+        
+        // Inicializar base de datos
+        this.database = new DatabaseManager();
+        this.initDatabase();
+        
+        // Verificar si necesitamos solicitar nombre
+        this.checkPlayerName();
+    }
+    
+    /**
+     * Inicializa la base de datos de manera asíncrona
+     */
+    async initDatabase() {
+        try {
+            await this.database.init();
+            console.log('💾 Base de datos inicializada correctamente');
+        } catch (error) {
+            console.error('❌ Error al inicializar la base de datos:', error);
+        }
     }
     
     /**
      * Inicia un nuevo juego
      */
     startGame() {
+        // Verificar que tengamos nombre de jugador
+        if (!this.currentPlayerName) {
+            this.showNameInputModal();
+            return;
+        }
+        
         this.gameStarted = true;
         this.moves = 0;
         this.matches = 0;
@@ -170,6 +248,7 @@ class MemoryGame {
         // Cambiar visibilidad de botones y configuraciones
         this.startBtn.classList.add('hidden');
         this.nextLevelBtn.classList.add('hidden');
+        this.finishGameBtn.classList.remove('hidden');
         this.gameSettings.style.opacity = '0.5';
         this.gameSettings.style.pointerEvents = 'none';
         
@@ -229,8 +308,20 @@ class MemoryGame {
      * Avanza al siguiente nivel
      */
     nextLevel() {
-        this.currentLevel++;
-        this.startGame();
+        if (this.currentLevel < Object.keys(this.levelConfig).length) {
+            this.currentLevel++;
+            this.nextLevelBtn.classList.add('hidden');
+            this.finishGameBtn.classList.remove('hidden'); // Mostrar finalizar al empezar nivel
+            console.log(`📈 Avanzando al nivel ${this.currentLevel}`);
+            this.startGame();
+        } else {
+            this.showMessage('🏆 ¡Juego Completado!', '¡Has completado todos los niveles disponibles! Eres un maestro de la memoria.', () => {
+                this.currentLevel = 1;
+                this.startBtn.classList.remove('hidden');
+                this.nextLevelBtn.classList.add('hidden');
+                this.finishGameBtn.classList.add('hidden');
+            });
+        }
     }
     
     /**
@@ -394,13 +485,18 @@ class MemoryGame {
             this.showMessage(
                 '🎉 ¡Nivel Completado!',
                 `¡Excelente trabajo! Completaste el nivel ${this.currentLevel} en ${timeElapsed} segundos con ${this.moves} movimientos.\n\nPuntuación: ${score}`,
-                () => {
+                async () => {
+                    // Guardar resultado en la base de datos
+                    await this.saveGameResult();
+                    
                     if (this.currentLevel < Object.keys(this.levelConfig).length) {
                         this.nextLevelBtn.classList.remove('hidden');
+                        this.finishGameBtn.classList.add('hidden'); // Ocultar finalizar en pausa entre niveles
                     } else {
                         this.showMessage('🏆 ¡Juego Completado!', '¡Has completado todos los niveles disponibles! Eres un maestro de la memoria.', () => {
                             this.currentLevel = 1;
                             this.startBtn.classList.remove('hidden');
+                            this.finishGameBtn.classList.add('hidden');
                         });
                     }
                 }
@@ -1008,6 +1104,320 @@ class MemoryGame {
         setTimeout(() => {
             transition.remove();
         }, 2500);
+    }
+
+    /**
+     * Abre el modal de rankings
+     */
+    async openRankings() {
+        try {
+            this.rankingsModal.classList.remove('hidden');
+            await this.loadRankings();
+        } catch (error) {
+            console.error('❌ Error al abrir rankings:', error);
+        }
+    }
+
+    /**
+     * Cambia entre pestañas del modal de rankings
+     */
+    switchTab(tabName) {
+        // Actualizar botones de pestañas
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tabName);
+        });
+
+        // Actualizar contenido de pestañas
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.toggle('active', content.id === `${tabName}-content`);
+        });
+    }
+
+    /**
+     * Cierra el modal de rankings
+     */
+    closeRankingsModal() {
+        this.rankingsModal.classList.add('hidden');
+    }
+
+    /**
+     * Abre el modal de ayuda
+     */
+    openHelp() {
+        this.helpModal.classList.remove('hidden');
+    }
+
+    /**
+     * Cierra el modal de ayuda
+     */
+    closeHelpModal() {
+        this.helpModal.classList.add('hidden');
+    }
+
+    /**
+     * Guarda el nombre del jugador
+     */
+    savePlayerName() {
+        const name = this.playerNameInput.value.trim() || 'Anónimo';
+        this.currentPlayerName = name;
+        localStorage.setItem('playerName', name);
+        this.showMessage('👤 Nombre guardado', `Tu nombre ahora es: ${name}`, null, 2000);
+    }
+
+    /**
+     * Carga y muestra los rankings
+     */
+    async loadRankings() {
+        try {
+            const rankings = await this.database.getTopPlayers();
+            const totalGames = await this.database.getTotalGames();
+            const averageTime = await this.database.getAverageTime();
+
+            this.displayRankings(rankings);
+            this.displayStatistics(totalGames, averageTime);
+        } catch (error) {
+            console.error('❌ Error al cargar rankings:', error);
+            document.querySelector('.ranking-content').innerHTML = 
+                '<p style="text-align: center; color: #ff6b6b;">Error al cargar los rankings</p>';
+        }
+    }
+
+    /**
+     * Muestra los rankings en el DOM
+     */
+    displayRankings(rankings) {
+        const tbody = document.querySelector('#level-rankings tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        
+        rankings.forEach((player, index) => {
+            const row = document.createElement('tr');
+            const position = index + 1;
+            let positionClass = '';
+            let medal = '';
+
+            if (position === 1) {
+                positionClass = 'gold';
+                medal = '🥇';
+            } else if (position === 2) {
+                positionClass = 'silver';
+                medal = '🥈';
+            } else if (position === 3) {
+                positionClass = 'bronze';
+                medal = '🥉';
+            }
+
+            const timeFormatted = this.formatTime(player.timeElapsed / 1000);
+            const date = new Date(player.timestamp).toLocaleDateString();
+
+            row.className = positionClass;
+            row.innerHTML = `
+                <td>${medal} ${position}</td>
+                <td>${player.playerName}</td>
+                <td>Nivel ${player.level}</td>
+                <td>${player.score.toLocaleString()}</td>
+                <td>${timeFormatted}</td>
+                <td>${player.moves}</td>
+                <td>${date}</td>
+            `;
+            
+            tbody.appendChild(row);
+        });
+    }
+
+    /**
+     * Muestra las estadísticas generales
+     */
+    displayStatistics(totalGames, averageTime) {
+        const statsContainer = document.querySelector('.stats-grid');
+        if (!statsContainer) return;
+
+        const avgTimeFormatted = averageTime ? this.formatTime(averageTime / 1000) : '--:--';
+
+        statsContainer.innerHTML = `
+            <div class="stat-card">
+                <div class="stat-number">${totalGames}</div>
+                <div class="stat-label">Partidas Jugadas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">${avgTimeFormatted}</div>
+                <div class="stat-label">Tiempo Promedio</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">${this.currentPlayerName}</div>
+                <div class="stat-label">Jugador Actual</div>
+            </div>
+        `;
+    }
+
+    /**
+     * Guarda el resultado del juego en la base de datos
+     */
+    async saveGameResult() {
+        const timeElapsed = Date.now() - this.startTime;
+        const score = this.calculateScore(timeElapsed);
+        
+        const gameData = {
+            playerName: this.currentPlayerName,
+            level: this.currentLevel,
+            score: score,
+            timeElapsed: timeElapsed,
+            moves: this.moves,
+            hintsUsed: this.hintsUsed,
+            powerupsUsed: {
+                hint: this.powerUpsUsed.hint || 0,
+                freeze: this.powerUpsUsed.freeze || 0,
+                shuffle: this.powerUpsUsed.shuffle || 0
+            },
+            timestamp: Date.now()
+        };
+
+        try {
+            await this.database.saveGame(gameData);
+            console.log('💾 Resultado guardado en la base de datos');
+        } catch (error) {
+            console.error('❌ Error al guardar resultado:', error);
+            // Guardar en localStorage como respaldo
+            this.saveGameData(score);
+        }
+    }
+
+    /**
+     * Formatea el tiempo para mostrar
+     */
+    formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+
+    /**
+     * Verifica si hay un nombre de jugador guardado
+     */
+    checkPlayerName() {
+        const savedName = localStorage.getItem('playerName');
+        if (savedName && savedName !== 'Anónimo') {
+            this.currentPlayerName = savedName;
+            this.needsPlayerName = false;
+            this.nameInputModal.classList.add('hidden');
+            if (this.playerNameInput) {
+                this.playerNameInput.value = savedName;
+            }
+        } else {
+            this.showNameInputModal();
+        }
+    }
+
+    /**
+     * Muestra el modal de entrada de nombre
+     */
+    showNameInputModal() {
+        this.nameInputModal.classList.remove('hidden');
+        this.initialPlayerNameInput.focus();
+        // Deshabilitar botón de inicio hasta que se ingrese nombre
+        this.startBtn.style.pointerEvents = 'none';
+        this.startBtn.style.opacity = '0.5';
+    }
+
+    /**
+     * Establece el nombre inicial del jugador
+     */
+    setInitialPlayerName() {
+        const name = this.initialPlayerNameInput.value.trim();
+        if (!name) {
+            this.showMessage('⚠️ Nombre requerido', 'Por favor, introduce tu nombre para continuar.', null, 3000);
+            return;
+        }
+
+        this.currentPlayerName = name;
+        localStorage.setItem('playerName', name);
+        this.needsPlayerName = false;
+        
+        // Habilitar botón de inicio
+        this.startBtn.style.pointerEvents = 'auto';
+        this.startBtn.style.opacity = '1';
+        
+        // Cerrar modal
+        this.nameInputModal.classList.add('hidden');
+        
+        // Actualizar nombre en otros lugares
+        if (this.playerNameInput) {
+            this.playerNameInput.value = name;
+        }
+
+        this.showMessage('👋 ¡Bienvenido!', `¡Hola ${name}! Ya puedes empezar a jugar.`, null, 2000);
+        console.log(`👤 Jugador registrado: ${name}`);
+    }
+
+    /**
+     * Finaliza el juego actual
+     */
+    async finishGame() {
+        if (!this.gameStarted) return;
+
+        this.showMessage(
+            '🏁 ¿Finalizar Juego?',
+            '¿Estás seguro de que quieres terminar la partida actual? Se guardará tu progreso.',
+            async () => {
+                // Guardar resultado parcial si hay progreso
+                if (this.moves > 0 || this.matches > 0) {
+                    await this.saveGameResult(true); // true = juego incompleto
+                }
+                
+                this.stopTimer();
+                this.gameStarted = false;
+                
+                // Resetear interfaz
+                this.startBtn.classList.remove('hidden');
+                this.finishGameBtn.classList.add('hidden');
+                this.nextLevelBtn.classList.add('hidden');
+                this.gameSettings.style.opacity = '1';
+                this.gameSettings.style.pointerEvents = 'auto';
+                
+                // Limpiar tablero
+                this.gameBoard.innerHTML = '';
+                this.updateDisplay();
+                
+                console.log('🏁 Juego finalizado por el usuario');
+            },
+            null,
+            true // Mostrar botón cancelar
+        );
+    }
+
+    /**
+     * Guarda el resultado del juego en la base de datos
+     * @param {boolean} incomplete - Si el juego está incompleto
+     */
+    async saveGameResult(incomplete = false) {
+        const timeElapsed = Date.now() - this.startTime;
+        const score = incomplete ? Math.floor(this.calculateScore(timeElapsed) * 0.5) : this.calculateScore(timeElapsed);
+        
+        const gameData = {
+            playerName: this.currentPlayerName || 'Anónimo',
+            level: this.currentLevel,
+            score: score,
+            timeElapsed: timeElapsed,
+            moves: this.moves,
+            hintsUsed: this.hintsUsed,
+            completed: !incomplete,
+            powerupsUsed: {
+                hint: this.powerUpsUsed?.hint || 0,
+                freeze: this.powerUpsUsed?.freeze || 0,
+                shuffle: this.powerUpsUsed?.shuffle || 0
+            },
+            timestamp: Date.now()
+        };
+
+        try {
+            await this.database.saveGame(gameData);
+            console.log(`💾 Resultado guardado en la base de datos (${incomplete ? 'incompleto' : 'completo'})`);
+        } catch (error) {
+            console.error('❌ Error al guardar resultado:', error);
+            // Guardar en localStorage como respaldo
+            this.saveGameData(score);
+        }
     }
 }
 
