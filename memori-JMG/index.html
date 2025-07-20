@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Memoria - Emojis</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header del juego -->
+        <header class="game-header">
+            <h1>🧠 Juego de Memoria</h1>
+            <div class="game-info">
+                <div class="info-item">
+                    <span class="label">Nivel:</span>
+                    <span id="level-display" class="value">1</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Movimientos:</span>
+                    <span id="moves-display" class="value">0</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Tiempo:</span>
+                    <span id="timer-display" class="value">--:--</span>
+                </div>
+            </div>
+            <button id="restart-btn" class="btn btn-restart">🔄 Reiniciar</button>
+        </header>
+
+        <!-- Panel de control -->
+        <div class="controls">
+            <button id="start-btn" class="btn btn-primary">🎮 Comenzar Juego</button>
+            <button id="next-level-btn" class="btn btn-success hidden">➡️ Siguiente Nivel</button>
+        </div>
+
+        <!-- Configuraciones del juego -->
+        <div class="game-settings" id="game-settings">
+            <div class="settings-row">
+                <label class="setting-item">
+                    <input type="checkbox" id="distractions-toggle"> 
+                    <span class="setting-label">🌪️ Distracciones Visuales</span>
+                </label>
+                <label class="setting-item">
+                    <input type="checkbox" id="sound-toggle" checked> 
+                    <span class="setting-label">🔊 Sonidos</span>
+                </label>
+                <label class="setting-item">
+                    <input type="checkbox" id="powerups-toggle" checked> 
+                    <span class="setting-label">⚡ Power-ups</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Power-ups disponibles -->
+        <div class="powerups-bar" id="powerups-bar">
+            <div class="powerup-item" id="hint-powerup" title="Mostrar una pareja por 3 segundos">
+                <span class="powerup-icon">💡</span>
+                <span class="powerup-count" id="hint-count">3</span>
+            </div>
+            <div class="powerup-item" id="freeze-powerup" title="Congelar el tiempo por 10 segundos">
+                <span class="powerup-icon">❄️</span>
+                <span class="powerup-count" id="freeze-count">2</span>
+            </div>
+            <div class="powerup-item" id="shuffle-powerup" title="Reorganizar todas las cartas no emparejadas">
+                <span class="powerup-icon">🔀</span>
+                <span class="powerup-count" id="shuffle-count">1</span>
+            </div>
+        </div>
+
+        <!-- Tablero de juego -->
+        <div class="game-board" id="game-board">
+            <!-- Las cartas se generarán dinámicamente aquí -->
+        </div>
+
+        <!-- Mensajes del juego -->
+        <div id="game-message" class="game-message hidden">
+            <div class="message-content">
+                <h2 id="message-title"></h2>
+                <p id="message-text"></p>
+                <button id="message-btn" class="btn btn-primary">OK</button>
+            </div>
+        </div>
+
+        <!-- Información del juego -->
+        <div class="game-stats">
+            <div class="stat">
+                <span class="stat-label">Mejor Puntuación:</span>
+                <span id="best-score" class="stat-value">-</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Nivel Máximo:</span>
+                <span id="max-level" class="stat-value">1</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
