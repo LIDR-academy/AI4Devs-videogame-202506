@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Asteroids Debug</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 20px;
+        background: #000;
+        color: #fff;
+        font-family: monospace;
+      }
+      #debug-info {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 1000;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 10px;
+        border: 1px solid #fff;
+      }
+      canvas {
+        border: 1px solid #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="debug-info">
+      <div>Loading debug info...</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    <script>
+      // Debug scene simple para verificar que todo funciona
+      class DebugScene extends Phaser.Scene {
+        constructor() {
+          super({ key: "DebugScene" });
+        }
+
+        preload() {
+          // Cargar las mismas imágenes
+          this.load.image("ship", "assets/images/nave.png");
+          this.load.image("asteroid", "assets/images/asteriode.png");
+          this.load.image("bullet", "assets/images/bala.png");
+
+          console.log("Loading assets...");
+        }
+
+        create() {
+          console.log("Debug scene created");
+
+          // Crear objetos simples para probar movimiento
+          this.ship = this.physics.add.sprite(400, 300, "ship");
+          this.ship.setScale(0.1);
+          this.ship.body.setVelocity(50, 0);
+
+          this.asteroid = this.physics.add.sprite(200, 200, "asteroid");
+          this.asteroid.setScale(0.1);
+          this.asteroid.body.setVelocity(30, 30);
+
+          this.bullet = this.physics.add.sprite(100, 100, "bullet");
+          this.bullet.setScale(0.05);
+          this.bullet.body.setVelocity(100, 50);
+
+          // Physics debug
+          this.physics.world.drawDebug = true;
+
+          // Setup collision
+          this.physics.add.overlap(this.bullet, this.asteroid, () => {
+            console.log("🎯 COLLISION DETECTED!");
+            this.updateDebugInfo("COLLISION!");
+          });
+
+          this.updateDebugInfo("Scene loaded - objects should be moving");
+        }
+
+        update() {
+          // Wrap around
+          if (this.ship.x > 800) this.ship.x = 0;
+          if (this.ship.y > 600) this.ship.y = 0;
+          if (this.asteroid.x > 800) this.asteroid.x = 0;
+          if (this.asteroid.y > 600) this.asteroid.y = 0;
+          if (this.bullet.x > 800) this.bullet.x = 0;
+          if (this.bullet.y > 600) this.bullet.y = 0;
+        }
+
+        updateDebugInfo(text) {
+          const debugDiv = document.getElementById("debug-info");
+          debugDiv.innerHTML = `
+                    <div>Status: ${text}</div>
+                    <div>Ship: ${
+                      this.ship
+                        ? `${Math.round(this.ship.x)}, ${Math.round(
+                            this.ship.y
+                          )}`
+                        : "N/A"
+                    }</div>
+                    <div>Asteroid: ${
+                      this.asteroid
+                        ? `${Math.round(this.asteroid.x)}, ${Math.round(
+                            this.asteroid.y
+                          )}`
+                        : "N/A"
+                    }</div>
+                    <div>Bullet: ${
+                      this.bullet
+                        ? `${Math.round(this.bullet.x)}, ${Math.round(
+                            this.bullet.y
+                          )}`
+                        : "N/A"
+                    }</div>
+                `;
+        }
+      }
+
+      // Configuración simple de Phaser
+      const config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 600,
+        physics: {
+          default: "arcade",
+          arcade: {
+            debug: true,
+          },
+        },
+        scene: DebugScene,
+      };
+
+      const game = new Phaser.Game(config);
+
+      console.log("Debug game started");
+    </script>
+  </body>
+</html>
