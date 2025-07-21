@@ -516,14 +516,14 @@ class GameScene extends Phaser.Scene {
     update() {
         if (!this.player) return;
         
-        // Scroll vertical tileado infinito con alineación exacta
-        this.bgScroll += 1; // Más lento
+        // Scroll vertical tileado infinito hacia abajo (como si la nave volara hacia adelante)
+        this.bgScroll += 1; // Velocidad de scroll
         const height = this.game.config.height;
         const totalHeight = height * this.bgGraphics.length;
         if (this.bgScroll >= height) this.bgScroll -= height;
         for (let i = 0; i < this.bgGraphics.length; i++) {
-            // Usar Math.round para evitar subpíxeles
-            let y = Math.round((i * height) - (this.bgScroll % height));
+            // Corregir dirección: suma el scroll para que vaya hacia abajo
+            let y = Math.round((i * height) + (this.bgScroll % height));
             if (y >= height) y -= totalHeight;
             this.bgGraphics[i].y = y;
         }
@@ -636,13 +636,13 @@ class GameScene extends Phaser.Scene {
                     }
                 }
                 
-                // Mover todas las plataformas (activas y completadas) con el scroll del fondo
+                // Mover todas las plataformas (activas y completadas) con el scroll del fondo hacia abajo
                 if (!child.isMovingUp) {
-                    child.y -= 0.7; // Scroll más rápido para desaparecer en ~8 segundos
+                    child.y += 0.7; // Scroll hacia abajo para salir por la parte inferior
                 }
                 
-                // Solo destruir cuando estén completamente fuera de la parte visible (arriba)
-                if (child.y < -100) {
+                // Solo destruir cuando estén completamente fuera de la parte visible (abajo)
+                if (child.y > this.game.config.height + 100) {
                     console.log('Plataforma salió de pantalla, destruyendo:', child.texture?.key, 'en', child.x, child.y);
                     child.destroy();
                 }
