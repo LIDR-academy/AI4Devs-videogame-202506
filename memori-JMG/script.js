@@ -54,6 +54,9 @@ class MemoryGame {
         // Cargar datos guardados
         this.loadGameData();
         
+        // Inicializar base de datos
+        this.initializeDatabase();
+        
         // Actualizar interfaz
         this.updateDisplay();
         this.resetPowerUps();
@@ -106,6 +109,10 @@ class MemoryGame {
         this.initialPlayerNameInput = document.getElementById('initial-player-name');
         this.startWithNameBtn = document.getElementById('start-with-name');
         
+        // Nuevos elementos para mostrar jugador actual y cambio de jugador
+        this.currentPlayerDisplay = document.getElementById('current-player-display');
+        this.changePlayerBtn = document.getElementById('change-player-btn');
+        
         this.currentPlayerName = null;
         this.needsPlayerName = true;
     }
@@ -145,15 +152,13 @@ class MemoryGame {
         this.saveNameBtn.addEventListener('click', () => this.savePlayerName());
         this.finishGameBtn.addEventListener('click', () => this.finishGame());
         
+        // Event listener para cambio de jugador
+        this.changePlayerBtn.addEventListener('click', () => this.changePlayer());
+        
         // Event listeners para modal de nombre inicial
         this.startWithNameBtn.addEventListener('click', () => this.setInitialPlayerName());
         this.initialPlayerNameInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.setInitialPlayerName();
-        });
-        
-        // Event listeners para pestañas del modal de rankings
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
         });
         
         // Event listeners para cerrar modales al hacer clic en el fondo
@@ -170,8 +175,9 @@ class MemoryGame {
         this.freezePowerup.addEventListener('click', () => this.usePowerUp('freeze'));
         this.shufflePowerup.addEventListener('click', () => this.usePowerUp('shuffle'));
         
-        // Event listener para cerrar mensaje con Escape
+        // Event listener para cerrar mensaje con Escape y otros atajos
         document.addEventListener('keydown', (e) => {
+            // Escape para cerrar ventanas
             if (e.key === 'Escape') {
                 if (!this.gameMessage.classList.contains('hidden')) {
                     this.hideMessage();
@@ -180,13 +186,39 @@ class MemoryGame {
                 } else if (!this.helpModal.classList.contains('hidden')) {
                     this.closeHelpModal();
                 }
+                return;
             }
+            
+            // Solo procesar otras teclas si no está escribiendo en un input
+            if (e.target.tagName.toLowerCase() === 'input') return;
             
             // Teclas rápidas para power-ups
             if (this.gameStarted && this.powerUpsEnabled) {
-                if (e.key === '1') this.usePowerUp('hint');
-                if (e.key === '2') this.usePowerUp('freeze');
-                if (e.key === '3') this.usePowerUp('shuffle');
+                if (e.key === '1') { e.preventDefault(); this.usePowerUp('hint'); }
+                if (e.key === '2') { e.preventDefault(); this.usePowerUp('freeze'); }
+                if (e.key === '3') { e.preventDefault(); this.usePowerUp('shuffle'); }
+            }
+            
+            // Otros atajos
+            if (e.key === 'h' || e.key === 'H') {
+                e.preventDefault();
+                this.openHelp();
+            }
+            if (e.key === 't' || e.key === 'T') {
+                e.preventDefault();
+                this.openRankings();
+            }
+            if (e.key === 'r' || e.key === 'R') {
+                if (this.gameStarted) {
+                    e.preventDefault();
+                    this.restartGame();
+                }
+            }
+            if (e.key === ' ') {
+                e.preventDefault();
+                if (!this.gameStarted && !this.needsPlayerName) {
+                    this.startGame();
+                }
             }
         });
         
@@ -708,8 +740,15 @@ class MemoryGame {
         
         // Actualizar estadísticas
         const savedData = this.loadGameData();
-        this.bestScore.textContent = savedData.bestScore || '-';
-        this.maxLevel.textContent = savedData.maxLevel || 1;
+        if (this.bestScore) {
+            this.bestScore.textContent = savedData.bestScore || '-';
+        }
+        if (this.maxLevel) {
+            this.maxLevel.textContent = savedData.maxLevel || 1;
+        }
+        
+        // Actualizar display del jugador actual
+        this.updateCurrentPlayerDisplay();
     }
     
     /**
@@ -739,6 +778,20 @@ class MemoryGame {
      * Carga los datos guardados del juego
      * @returns {Object} Datos del juego
      */
+    /**
+     * Inicializa la base de datos
+     */
+    async initializeDatabase() {
+        try {
+            if (window.dbManager) {
+                await window.dbManager.initialize();
+                console.log('✅ Base de datos inicializada');
+            }
+        } catch (error) {
+            console.error('❌ Error inicializando base de datos:', error);
+        }
+    }
+
     loadGameData() {
         try {
             const data = localStorage.getItem('memoryGameData');
@@ -1112,25 +1165,103 @@ class MemoryGame {
     async openRankings() {
         try {
             this.rankingsModal.classList.remove('hidden');
-            await this.loadRankings();
+            await this.loadAllRankings();
         } catch (error) {
             console.error('❌ Error al abrir rankings:', error);
         }
     }
 
     /**
-     * Cambia entre pestañas del modal de rankings
+     * Carga y muestra todos los rankings
      */
-    switchTab(tabName) {
-        // Actualizar botones de pestañas
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.tab === tabName);
-        });
+    async loadAllRankings() {
+        console.log('🏆 Cargando todos los rankings...');
+        try {
+            if (this.database && this.database.initialized) {
+                console.log('📊 Base de datos disponible, obteniendo todos los jugadores...');
+                
+                // Obtener todos los rankings (sin límite)
+                const allRankings = this.database.getAllRankings();
+                console.log('📈 Todos los rankings obtenidos:', allRankings);
 
-        // Actualizar contenido de pestañas
-        document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.toggle('active', content.id === `${tabName}-content`);
+                this.displayAllRankings(allRankings);
+            } else {
+                console.warn('⚠️ Base de datos no disponible:', {
+                    exists: !!this.database,
+                    initialized: this.database?.initialized
+                });
+                
+                // Mostrar mensaje de sin datos
+                this.displayAllRankings([]);
+            }
+        } catch (error) {
+            console.error('❌ Error al cargar todos los rankings:', error);
+            const allRankings = document.getElementById('all-rankings');
+            if (allRankings) {
+                allRankings.innerHTML = '<div class="no-data">Error al cargar los rankings</div>';
+            }
+        }
+    }
+
+    /**
+     * Muestra todos los rankings en una tabla simple
+     */
+    displayAllRankings(rankings) {
+        const allRankings = document.getElementById('all-rankings');
+        if (!allRankings) {
+            console.error('Elemento all-rankings no encontrado');
+            return;
+        }
+
+        allRankings.innerHTML = '';
+        
+        if (!rankings || rankings.length === 0) {
+            allRankings.innerHTML = '<div class="no-data">🚫 No hay rankings disponibles. ¡Juega para aparecer en la tabla!</div>';
+            return;
+        }
+
+        // Ordenar rankings por puntuación (descendente) y luego por nivel (descendente)
+        const sortedRankings = rankings.sort((a, b) => {
+            // Primero por puntuación
+            if (b.puntuacion !== a.puntuacion) {
+                return b.puntuacion - a.puntuacion;
+            }
+            // Si la puntuación es igual, por nivel máximo
+            return (b.nivel || 0) - (a.nivel || 0);
         });
+        
+        sortedRankings.forEach((player, index) => {
+            const position = index + 1;
+            let positionClass = '';
+            let medal = '';
+
+            if (position === 1) {
+                positionClass = 'gold';
+                medal = '🥇';
+            } else if (position === 2) {
+                positionClass = 'silver';
+                medal = '🥈';
+            } else if (position === 3) {
+                positionClass = 'bronze';
+                medal = '🥉';
+            }
+
+            const timeFormatted = this.formatTime(player.tiempo || 0);
+            
+            const rankingItem = document.createElement('div');
+            rankingItem.className = `ranking-row ${positionClass}`;
+            rankingItem.innerHTML = `
+                <span class="pos">${medal || position}</span>
+                <span class="name">${player.nombre || 'Anónimo'}</span>
+                <span class="score">${(player.puntuacion || 0).toLocaleString()}</span>
+                <span class="level">${player.nivel || 1}</span>
+                <span class="time">${timeFormatted}</span>
+            `;
+            
+            allRankings.appendChild(rankingItem);
+        });
+        
+        console.log(`✅ Mostrados ${sortedRankings.length} rankings`);
     }
 
     /**
@@ -1165,121 +1296,52 @@ class MemoryGame {
     }
 
     /**
-     * Carga y muestra los rankings
-     */
-    async loadRankings() {
-        try {
-            const rankings = await this.database.getTopPlayers();
-            const totalGames = await this.database.getTotalGames();
-            const averageTime = await this.database.getAverageTime();
-
-            this.displayRankings(rankings);
-            this.displayStatistics(totalGames, averageTime);
-        } catch (error) {
-            console.error('❌ Error al cargar rankings:', error);
-            document.querySelector('.ranking-content').innerHTML = 
-                '<p style="text-align: center; color: #ff6b6b;">Error al cargar los rankings</p>';
-        }
-    }
-
-    /**
-     * Muestra los rankings en el DOM
-     */
-    displayRankings(rankings) {
-        const tbody = document.querySelector('#level-rankings tbody');
-        if (!tbody) return;
-
-        tbody.innerHTML = '';
-        
-        rankings.forEach((player, index) => {
-            const row = document.createElement('tr');
-            const position = index + 1;
-            let positionClass = '';
-            let medal = '';
-
-            if (position === 1) {
-                positionClass = 'gold';
-                medal = '🥇';
-            } else if (position === 2) {
-                positionClass = 'silver';
-                medal = '🥈';
-            } else if (position === 3) {
-                positionClass = 'bronze';
-                medal = '🥉';
-            }
-
-            const timeFormatted = this.formatTime(player.timeElapsed / 1000);
-            const date = new Date(player.timestamp).toLocaleDateString();
-
-            row.className = positionClass;
-            row.innerHTML = `
-                <td>${medal} ${position}</td>
-                <td>${player.playerName}</td>
-                <td>Nivel ${player.level}</td>
-                <td>${player.score.toLocaleString()}</td>
-                <td>${timeFormatted}</td>
-                <td>${player.moves}</td>
-                <td>${date}</td>
-            `;
-            
-            tbody.appendChild(row);
-        });
-    }
-
-    /**
-     * Muestra las estadísticas generales
-     */
-    displayStatistics(totalGames, averageTime) {
-        const statsContainer = document.querySelector('.stats-grid');
-        if (!statsContainer) return;
-
-        const avgTimeFormatted = averageTime ? this.formatTime(averageTime / 1000) : '--:--';
-
-        statsContainer.innerHTML = `
-            <div class="stat-card">
-                <div class="stat-number">${totalGames}</div>
-                <div class="stat-label">Partidas Jugadas</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">${avgTimeFormatted}</div>
-                <div class="stat-label">Tiempo Promedio</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">${this.currentPlayerName}</div>
-                <div class="stat-label">Jugador Actual</div>
-            </div>
-        `;
-    }
-
-    /**
      * Guarda el resultado del juego en la base de datos
      */
     async saveGameResult() {
+        console.log('🔄 Iniciando guardado de resultado...');
+        if (!this.startTime) {
+            console.warn('⚠️ No hay startTime, no se puede guardar');
+            return;
+        }
+        
         const timeElapsed = Date.now() - this.startTime;
         const score = this.calculateScore(timeElapsed);
         
-        const gameData = {
-            playerName: this.currentPlayerName,
-            level: this.currentLevel,
-            score: score,
-            timeElapsed: timeElapsed,
-            moves: this.moves,
-            hintsUsed: this.hintsUsed,
-            powerupsUsed: {
-                hint: this.powerUpsUsed.hint || 0,
-                freeze: this.powerUpsUsed.freeze || 0,
-                shuffle: this.powerUpsUsed.shuffle || 0
-            },
-            timestamp: Date.now()
-        };
-
-        try {
-            await this.database.saveGame(gameData);
-            console.log('💾 Resultado guardado en la base de datos');
-        } catch (error) {
-            console.error('❌ Error al guardar resultado:', error);
-            // Guardar en localStorage como respaldo
-            this.saveGameData(score);
+        console.log(`📊 Datos del juego: Jugador: ${this.currentPlayerName}, Puntuación: ${score}, Nivel: ${this.currentLevel}`);
+        
+        // Guardar en localStorage (sistema simple)
+        this.saveGameData(score);
+        
+        // Guardar en base de datos
+        if (window.dbManager && window.dbManager.initialized) {
+            try {
+                const gameData = {
+                    nombre: this.currentPlayerName || 'Anónimo',
+                    puntuacion: score,
+                    nivel: this.currentLevel,
+                    tiempo: Math.floor(timeElapsed / 1000), // convertir a segundos
+                    movimientos: this.moves,
+                    hints_usados: this.hintsUsed || 0,
+                    powerups_usados: (this.powerUpsUsed?.hint || 0) + (this.powerUpsUsed?.freeze || 0) + (this.powerUpsUsed?.shuffle || 0)
+                };
+                
+                console.log('💾 Guardando en base de datos:', gameData);
+                const result = window.dbManager.addRanking(gameData);
+                console.log(`✅ Resultado del guardado: ${result}`);
+                
+                // Verificar que se guardó
+                const rankings = window.dbManager.getTopPlayers(5);
+                console.log('🏆 Rankings actuales:', rankings);
+                
+            } catch (error) {
+                console.error('❌ Error guardando en base de datos:', error);
+            }
+        } else {
+            console.warn('⚠️ Base de datos no disponible:', {
+                exists: !!window.dbManager,
+                initialized: window.dbManager?.initialized
+            });
         }
     }
 
@@ -1304,6 +1366,7 @@ class MemoryGame {
             if (this.playerNameInput) {
                 this.playerNameInput.value = savedName;
             }
+            this.updateCurrentPlayerDisplay();
         } else {
             this.showNameInputModal();
         }
@@ -1318,6 +1381,8 @@ class MemoryGame {
         // Deshabilitar botón de inicio hasta que se ingrese nombre
         this.startBtn.style.pointerEvents = 'none';
         this.startBtn.style.opacity = '0.5';
+        // Actualizar display
+        this.updateCurrentPlayerDisplay();
     }
 
     /**
@@ -1346,8 +1411,64 @@ class MemoryGame {
             this.playerNameInput.value = name;
         }
 
+        // Actualizar display del jugador actual
+        this.updateCurrentPlayerDisplay();
+
         this.showMessage('👋 ¡Bienvenido!', `¡Hola ${name}! Ya puedes empezar a jugar.`, null, 2000);
         console.log(`👤 Jugador registrado: ${name}`);
+    }
+
+    /**
+     * Cambia de jugador
+     */
+    changePlayer() {
+        // Confirmar si hay una partida en progreso
+        if (this.gameStarted) {
+            const confirm = window.confirm('¿Estás seguro de que quieres cambiar de jugador? Se perderá el progreso actual.');
+            if (!confirm) return;
+        }
+
+        // Resetear juego si estaba en progreso
+        if (this.gameStarted) {
+            this.resetGame();
+        }
+
+        // Resetear datos del jugador
+        this.currentPlayerName = null;
+        this.needsPlayerName = true;
+        localStorage.removeItem('playerName');
+        
+        // Limpiar campos de entrada
+        this.initialPlayerNameInput.value = '';
+        if (this.playerNameInput) {
+            this.playerNameInput.value = '';
+        }
+        
+        // Actualizar display
+        this.updateCurrentPlayerDisplay();
+        
+        // Mostrar modal de nombre
+        this.nameInputModal.classList.remove('hidden');
+        
+        // Deshabilitar botón de inicio hasta que se introduzca nombre
+        this.startBtn.style.pointerEvents = 'none';
+        this.startBtn.style.opacity = '0.5';
+        
+        this.showMessage('👤 Cambio de Jugador', 'Por favor, introduce el nombre del nuevo jugador.', null, 2000);
+        
+        // Enfocar el campo de entrada
+        setTimeout(() => {
+            this.initialPlayerNameInput.focus();
+        }, 100);
+    }
+
+    /**
+     * Actualiza el display del jugador actual
+     */
+    updateCurrentPlayerDisplay() {
+        if (this.currentPlayerDisplay) {
+            this.currentPlayerDisplay.textContent = this.currentPlayerName || 'Invitado';
+        }
     }
 
     /**
@@ -1386,39 +1507,6 @@ class MemoryGame {
         );
     }
 
-    /**
-     * Guarda el resultado del juego en la base de datos
-     * @param {boolean} incomplete - Si el juego está incompleto
-     */
-    async saveGameResult(incomplete = false) {
-        const timeElapsed = Date.now() - this.startTime;
-        const score = incomplete ? Math.floor(this.calculateScore(timeElapsed) * 0.5) : this.calculateScore(timeElapsed);
-        
-        const gameData = {
-            playerName: this.currentPlayerName || 'Anónimo',
-            level: this.currentLevel,
-            score: score,
-            timeElapsed: timeElapsed,
-            moves: this.moves,
-            hintsUsed: this.hintsUsed,
-            completed: !incomplete,
-            powerupsUsed: {
-                hint: this.powerUpsUsed?.hint || 0,
-                freeze: this.powerUpsUsed?.freeze || 0,
-                shuffle: this.powerUpsUsed?.shuffle || 0
-            },
-            timestamp: Date.now()
-        };
-
-        try {
-            await this.database.saveGame(gameData);
-            console.log(`💾 Resultado guardado en la base de datos (${incomplete ? 'incompleto' : 'completo'})`);
-        } catch (error) {
-            console.error('❌ Error al guardar resultado:', error);
-            // Guardar en localStorage como respaldo
-            this.saveGameData(score);
-        }
-    }
 }
 
 // Inicializar el juego cuando se carga la página
