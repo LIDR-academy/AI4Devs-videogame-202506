@@ -1,0 +1,97 @@
+/* Estilos base para Iron Man vs Ultron */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+#game-container {
+    text-align: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 15px;
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+h1 {
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    color: #ffd700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    font-weight: bold;
+}
+
+#game-canvas {
+    border: 3px solid #dc143c;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(220, 20, 60, 0.5);
+    margin: 20px 0;
+    background: #000;
+}
+
+#controls-info {
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    border: 1px solid #444;
+}
+
+#controls-info p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #ccc;
+}
+
+#controls-info strong {
+    color: #ffd700;
+}
+
+/* Responsive para dispositivos móviles */
+@media (max-width: 768px) {
+    #game-container {
+        padding: 10px;
+        margin: 10px;
+    }
+    
+    h1 {
+        font-size: 2em;
+    }
+    
+    #game-canvas {
+        max-width: 100%;
+        height: auto;
+    }
+    
+    #controls-info {
+        font-size: 12px;
+    }
+}
+
+/* Efecto de carga */
+.loading {
+    display: inline-block;
+    animation: pulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+    from {
+        opacity: 0.6;
+    }
+    to {
+        opacity: 1;
+    }
+} 
