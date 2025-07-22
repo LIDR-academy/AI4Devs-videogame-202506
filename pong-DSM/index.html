@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game - Classic Arcade Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+            color: white;
+        }
+
+        .game-container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+        }
+
+        h1 {
+            font-size: 3em;
+            margin: 0 0 10px 0;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #00ffff; }
+            to { text-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff; }
+        }
+
+        canvas {
+            border: 3px solid #00ffff;
+            background: #000;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            display: block;
+            margin: 0 auto;
+        }
+
+        .score {
+            font-size: 2em;
+            margin: 15px 0;
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        .controls {
+            margin: 20px 0;
+            font-size: 1.2em;
+            color: #ffff00;
+            text-shadow: 0 0 3px #ffff00;
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            border: 3px solid #ff0000;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+            display: none;
+        }
+
+        .game-over h2 {
+            color: #ff0000;
+            font-size: 2.5em;
+            margin: 0 0 20px 0;
+            text-shadow: 0 0 10px #ff0000;
+        }
+
+        .game-over button {
+            background: linear-gradient(45deg, #00ffff, #0080ff);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.5em;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .game-over button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+        }
+
+        .pause-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #ffff00;
+            display: none;
+        }
+
+        .mode-button {
+            background: linear-gradient(45deg, #00ffff, #0080ff);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.3em;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .mode-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.7);
+        }
+
+        .game-mode {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #00ffff;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .aesthetic-button, .palette-button {
+            background: linear-gradient(45deg, #333, #555);
+            color: white;
+            border: 2px solid #666;
+            padding: 15px;
+            font-size: 1.1em;
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            min-width: 120px;
+        }
+
+        .aesthetic-button:hover, .palette-button:hover {
+            transform: scale(1.05);
+            border-color: #00ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .aesthetic-preview {
+            width: 60px;
+            height: 40px;
+            border-radius: 8px;
+            border: 2px solid #333;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .retro-neon-preview {
+            background: linear-gradient(45deg, #000, #001133);
+            border-color: #00ffff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .classic-preview {
+            background: #000;
+            border-color: #fff;
+        }
+
+        .modern-preview {
+            background: linear-gradient(45deg, #2c3e50, #34495e);
+            border-color: #3498db;
+        }
+
+        .palette-preview {
+            display: flex;
+            gap: 2px;
+            padding: 5px;
+            background: #222;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+
+        .color-sample {
+            width: 15px;
+            height: 30px;
+            border-radius: 3px;
+            border: 1px solid #666;
+        }
+
+        .back-button {
+            background: rgba(0, 0, 0, 0.7);
+            color: #ccc;
+            border: 1px solid #666;
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .back-button:hover {
+            background: rgba(0, 0, 0, 0.9);
+            color: #fff;
+            border-color: #999;
+        }
+
+        .aesthetic-selection, .color-palette-selection {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #00ffff;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            canvas {
+                max-width: 90vw;
+                height: auto;
+                display: block;
+                margin: 0 auto;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .score {
+                font-size: 1.5em;
+            }
+            
+            .aesthetic-button, .palette-button {
+                min-width: 100px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>PONG</h1>
+
+        <!-- Game Mode Selection -->
+        <div class="game-mode" id="gameModeSelection">
+            <h2 style="color: #00ffff; margin: 20px 0;">Choose Game Mode</h2>
+            <div style="display: flex; gap: 20px; justify-content: center; margin: 20px 0;">
+                <button class="mode-button" onclick="selectGameMode('ai')">Player vs AI</button>
+                <button class="mode-button" onclick="selectGameMode('player')">Player vs Player</button>
+            </div>
+        </div>
+
+        <!-- Difficulty Selection (for AI mode only) -->
+        <div class="game-mode" id="difficultySelection" style="display: none;">
+            <h2 style="color: #00ffff; margin: 20px 0;">Choose AI Difficulty</h2>
+            <div style="display: flex; gap: 15px; justify-content: center; margin: 20px 0; flex-wrap: wrap;">
+                <button class="mode-button" onclick="selectDifficulty('easy')" style="background: linear-gradient(45deg, #00ff00, #00aa00);">
+                    <div style="margin-bottom: 5px;">🟢 Easy</div>
+                    <small style="font-size: 0.8em; opacity: 0.8;">Relaxed AI</small>
+                </button>
+                <button class="mode-button" onclick="selectDifficulty('normal')" style="background: linear-gradient(45deg, #ffaa00, #ff8800);">
+                    <div style="margin-bottom: 5px;">🟡 Normal</div>
+                    <small style="font-size: 0.8em; opacity: 0.8;">Balanced AI</small>
+                </button>
+                <button class="mode-button" onclick="selectDifficulty('expert')" style="background: linear-gradient(45deg, #ff0000, #aa0000);">
+                    <div style="margin-bottom: 5px;">🔴 Expert</div>
+                    <small style="font-size: 0.8em; opacity: 0.8;">Challenge AI</small>
+                </button>
+            </div>
+            <button class="back-button" onclick="goBackToGameMode()">← Back to Game Mode</button>
+        </div>
+
+        <!-- Physics Mode Selection -->
+        <div class="game-mode" id="dramaticModeSelection" style="display: none;">
+            <h2 style="color: #00ffff; margin: 20px 0;">🎬 Physics Mode Selection</h2>
+            <p style="color: #cccccc; margin-bottom: 30px;">Choose your preferred ball physics style:</p>
+            
+            <div style="display: flex; justify-content: center; gap: 30px; margin: 30px 0; flex-wrap: wrap;">
+                <button class="mode-button" onclick="selectDramaticMode(false)" style="background: linear-gradient(45deg, #4CAF50, #45a049); min-width: 200px; height: 140px;">
+                    <div style="font-size: 2em; margin-bottom: 10px;">🎯</div>
+                    <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 8px;">SOFT MODE</div>
+                    <div style="font-size: 0.85em; opacity: 0.9; line-height: 1.3;">
+                        Classic physics<br>
+                        Gentle ball control<br>
+                        Traditional gameplay
+                    </div>
+                </button>
+                
+                <button class="mode-button" onclick="selectDramaticMode(true)" style="background: linear-gradient(45deg, #FF6B35, #F7931E); min-width: 200px; height: 140px;">
+                    <div style="font-size: 2em; margin-bottom: 10px;">⚡</div>
+                    <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 8px;">DRAMATIC MODE</div>
+                    <div style="font-size: 0.85em; opacity: 0.9; line-height: 1.3;">
+                        Enhanced physics<br>
+                        Powerful ball effects<br>
+                        Dynamic gameplay
+                    </div>
+                </button>
+            </div>
+            
+            <button class="back-button" onclick="backToDifficulty()">← Back</button>
+        </div>
+
+        <!-- Aesthetic Selection -->
+        <div class="aesthetic-selection" id="aestheticSelection" style="display: none;">
+            <h2 style="color: #00ffff; margin: 20px 0;">Choose Visual Style</h2>
+            <div style="display: flex; gap: 15px; justify-content: center; margin: 20px 0; flex-wrap: wrap;">
+                <button class="aesthetic-button" onclick="selectAesthetic('retro-neon')">
+                    <div class="aesthetic-preview retro-neon-preview"></div>
+                    Retro Neon
+                </button>
+                <button class="aesthetic-button" onclick="selectAesthetic('classic')">
+                    <div class="aesthetic-preview classic-preview"></div>
+                    Classic Retro
+                </button>
+                <button class="aesthetic-button" onclick="selectAesthetic('modern')">
+                    <div class="aesthetic-preview modern-preview"></div>
+                    Modern
+                </button>
+            </div>
+            <button class="back-button" onclick="goBackFromAesthetic()">← Back</button>
+        </div>
+
+        <!-- Color Palette Selection (for Retro-Neon only) -->
+        <div class="color-palette-selection" id="colorPaletteSelection" style="display: none;">
+            <h2 style="color: #00ffff; margin: 20px 0;">Choose Color Palette</h2>
+            <div style="display: flex; gap: 15px; justify-content: center; margin: 20px 0; flex-wrap: wrap;">
+                <button class="palette-button" onclick="startGameWithPalette('cyan')">
+                    <div class="palette-preview cyan-palette">
+                        <div class="color-sample" style="background: #00ffff;"></div>
+                        <div class="color-sample" style="background: #00ff00;"></div>
+                        <div class="color-sample" style="background: #ffff00;"></div>
+                    </div>
+                    Cyan Electric
+                </button>
+                <button class="palette-button" onclick="startGameWithPalette('purple')">
+                    <div class="palette-preview purple-palette">
+                        <div class="color-sample" style="background: #ff00ff;"></div>
+                        <div class="color-sample" style="background: #8a2be2;"></div>
+                        <div class="color-sample" style="background: #ff69b4;"></div>
+                    </div>
+                    Purple Fusion
+                </button>
+                <button class="palette-button" onclick="startGameWithPalette('orange')">
+                    <div class="palette-preview orange-palette">
+                        <div class="color-sample" style="background: #ff4500;"></div>
+                        <div class="color-sample" style="background: #ffa500;"></div>
+                        <div class="color-sample" style="background: #ffff00;"></div>
+                    </div>
+                    Orange Sunset
+                </button>
+            </div>
+            <button class="back-button" onclick="goBackToAesthetic()">← Back to Visual Style</button>
+        </div>
+
+        <div class="score">
+            <span><span id="leftPlayerLabel">Player 1</span>: <span id="playerScore">0</span></span>
+            <span style="margin: 0 50px;">|</span>
+            <span><span id="rightPlayerLabel">AI</span>: <span id="aiScore">0</span></span>
+        </div>
+        <canvas id="gameCanvas" width="800" height="400" style="display: none;"></canvas>
+        <div class="controls" id="gameControls" style="display: none;">
+            <p id="controlsText"><strong>Controls:</strong> W/S keys or ↑/↓ arrows to move | SPACE to pause | R to restart</p>
+            <p><strong>Goal:</strong> First to 10 points wins!</p>
+        </div>
+
+        <!-- Game Over Overlay -->
+        <div class="game-over" id="gameOverOverlay">
+            <h2 id="gameOverTitle">GAME OVER</h2>
+            <p id="gameOverMessage" style="font-size: 1.5em; margin: 20px 0;"></p>
+            <button onclick="restartGame()">Play Again</button>
+        </div>
+
+        <!-- Pause Overlay -->
+        <div class="pause-overlay" id="pauseOverlay">
+            <h3 style="color: #ffff00; font-size: 2em; margin: 0;">PAUSED</h3>
+            <p style="margin: 10px 0; font-size: 1.2em;">Press SPACE to continue</p>
+        </div>
+    </div>
+
+    <script>
+        // Game canvas and context
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game state
+        let gameRunning = false;
+        let gamePaused = false;
+        let gameOver = false;
+        let gameMode = 'ai'; // 'ai' or 'player'
+        let aiDifficulty = 'normal'; // 'easy', 'normal', 'expert'
+        let dramaticMode = false; // New global parameter for dramatic physics
+        let selectedAesthetic = 'retro-neon'; // 'retro-neon', 'classic', 'modern'
+        let selectedPalette = 'cyan'; // 'cyan', 'purple', 'orange'
+
+        // Score elements
+        const playerScoreElement = document.getElementById('playerScore');
+        const aiScoreElement = document.getElementById('aiScore');
+        const leftPlayerLabel = document.getElementById('leftPlayerLabel');
+        const rightPlayerLabel = document.getElementById('rightPlayerLabel');
+        const gameOverOverlay = document.getElementById('gameOverOverlay');
+        const pauseOverlay = document.getElementById('pauseOverlay');
+        const gameOverTitle = document.getElementById('gameOverTitle');
+        const gameOverMessage = document.getElementById('gameOverMessage');
+        const gameModeSelection = document.getElementById('gameModeSelection');
+        const difficultySelection = document.getElementById('difficultySelection');
+        const dramaticModeSelection = document.getElementById('dramaticModeSelection');
+        const aestheticSelection = document.getElementById('aestheticSelection');
+        const colorPaletteSelection = document.getElementById('colorPaletteSelection');
+        const gameControls = document.getElementById('gameControls');
+        const controlsText = document.getElementById('controlsText');
+
+        // Game objects
+        const ball = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 8,
+            speedX: 5,
+            speedY: 3,
+            maxSpeed: 12
+        };
+
+        const leftPaddle = {
+            x: 20,
+            y: canvas.height / 2 - 50,
+            width: 15,
+            height: 100,
+            speed: 8,
+            score: 0,
+            stunned: false,
+            stunTimer: 0,
+            canShoot: false
+        };
+
+        const rightPaddle = {
+            x: canvas.width - 35,
+            y: canvas.height / 2 - 50,
+            width: 15,
+            height: 100,
+            speed: 6, // AI paddle slightly slower
+            score: 0,
+            stunned: false,
+            stunTimer: 0,
+            canShoot: false
+        };
+
+        // Laser bullet system
+        const bullets = [];
+        const BULLET_SPEED_MULTIPLIER = 2;
+        const PADDLE_STUN_DURATION = 100; // 0.1 seconds at 60fps
+        const midFieldLine = canvas.width / 2;
+
+        // Input handling
+        const keys = {};
+
+        document.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+            
+            // Handle special keys
+            if (e.key === ' ') {
+                e.preventDefault();
+                togglePause();
+            } else if (e.key.toLowerCase() === 'r') {
+                restartGame();
+            } else if (e.key.toLowerCase() === 'x') {
+                // Left player laser bullet
+                fireBullet('left');
+            } else if (e.key.toLowerCase() === 'p') {
+                // Right player laser bullet (only in player vs player mode)
+                if (gameMode === 'player') {
+                    fireBullet('right');
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+
+        // Aesthetic themes
+        const themes = {
+            'retro-neon': {
+                'cyan': {
+                    background: 'linear-gradient(135deg, #1a1a2e, #16213e)',
+                    canvasBackground: '#000',
+                    canvasBorder: '#00ffff',
+                    paddleColor: '#00ffff',
+                    ballColor: '#ffffff',
+                    scoreColor: '#00ff00',
+                    titleColor: '#00ffff',
+                    borderGlow: 'rgba(0, 255, 255, 0.5)',
+                    paddleGlow: '#00ffff',
+                    ballGlow: '#ffffff'
+                },
+                'purple': {
+                    background: 'linear-gradient(135deg, #2d1b4e, #1a0f2e)',
+                    canvasBackground: '#000',
+                    canvasBorder: '#ff00ff',
+                    paddleColor: '#ff00ff',
+                    ballColor: '#ffffff',
+                    scoreColor: '#ff69b4',
+                    titleColor: '#ff00ff',
+                    borderGlow: 'rgba(255, 0, 255, 0.5)',
+                    paddleGlow: '#ff00ff',
+                    ballGlow: '#ffffff'
+                },
+                'orange': {
+                    background: 'linear-gradient(135deg, #4a2c0a, #2d1b08)',
+                    canvasBackground: '#000',
+                    canvasBorder: '#ff4500',
+                    paddleColor: '#ff4500',
+                    ballColor: '#ffffff',
+                    scoreColor: '#ffa500',
+                    titleColor: '#ff4500',
+                    borderGlow: 'rgba(255, 69, 0, 0.5)',
+                    paddleGlow: '#ff4500',
+                    ballGlow: '#ffffff'
+                }
+            },
+            'classic': {
+                background: '#000',
+                canvasBackground: '#000',
+                canvasBorder: '#fff',
+                paddleColor: '#fff',
+                ballColor: '#fff',
+                scoreColor: '#fff',
+                titleColor: '#fff',
+                borderGlow: 'none',
+                paddleGlow: 'none',
+                ballGlow: 'none'
+            },
+            'modern': {
+                background: 'linear-gradient(135deg, #2c3e50, #34495e)',
+                canvasBackground: '#1e272e',
+                canvasBorder: '#3498db',
+                paddleColor: '#3498db',
+                ballColor: '#e74c3c',
+                scoreColor: '#2ecc71',
+                titleColor: '#3498db',
+                borderGlow: 'rgba(52, 152, 219, 0.3)',
+                paddleGlow: '#3498db',
+                ballGlow: '#e74c3c'
+            }
+        };
+
+        function getCurrentTheme() {
+            if (selectedAesthetic === 'retro-neon') {
+                return themes['retro-neon'][selectedPalette];
+            }
+            return themes[selectedAesthetic];
+        }
+
+        function applyTheme() {
+            const theme = getCurrentTheme();
+            
+            // Apply background
+            document.body.style.background = theme.background;
+            
+            // Apply canvas border and shadow
+            canvas.style.border = `3px solid ${theme.canvasBorder}`;
+            if (theme.borderGlow !== 'none') {
+                canvas.style.boxShadow = `0 0 20px ${theme.borderGlow}`;
+            } else {
+                canvas.style.boxShadow = 'none';
+            }
+            
+            // Apply title color
+            const title = document.querySelector('h1');
+            title.style.color = theme.titleColor;
+            if (theme.borderGlow !== 'none') {
+                title.style.textShadow = `0 0 10px ${theme.titleColor}`;
+                title.style.animation = selectedAesthetic === 'classic' ? 'none' : 'glow 2s ease-in-out infinite alternate';
+            } else {
+                title.style.textShadow = 'none';
+                title.style.animation = 'none';
+            }
+            
+            // Apply score colors
+            const scoreElements = document.querySelectorAll('.score span');
+            scoreElements.forEach(element => {
+                element.style.color = theme.scoreColor;
+                if (theme.borderGlow !== 'none') {
+                    element.style.textShadow = `0 0 5px ${theme.scoreColor}`;
+                } else {
+                    element.style.textShadow = 'none';
+                }
+            });
+        }
+
+        // Game functions
+        function selectGameMode(mode) {
+            gameMode = mode;
+            gameModeSelection.style.display = 'none';
+            
+            if (mode === 'ai') {
+                difficultySelection.style.display = 'block';
+            } else {
+                dramaticModeSelection.style.display = 'block';
+            }
+        }
+
+        function selectDifficulty(difficulty) {
+            aiDifficulty = difficulty;
+            difficultySelection.style.display = 'none';
+            dramaticModeSelection.style.display = 'block';
+        }
+
+        function selectDramaticMode(isDramatic) {
+            dramaticMode = isDramatic;
+            dramaticModeSelection.style.display = 'none';
+            aestheticSelection.style.display = 'block';
+            
+            // Update ball properties based on mode
+            if (dramaticMode) {
+                // Dramatic mode - enhanced physics
+                ball.maxSpeed = 18; // Higher maximum speed
+            } else {
+                // Soft mode - classic physics
+                ball.maxSpeed = 12; // Original maximum speed
+            }
+        }
+
+        function backToDifficulty() {
+            dramaticModeSelection.style.display = 'none';
+            if (gameMode === 'ai') {
+                difficultySelection.style.display = 'block';
+            } else {
+                gameModeSelection.style.display = 'block';
+            }
+        }
+
+        function selectAesthetic(aesthetic) {
+            selectedAesthetic = aesthetic;
+            aestheticSelection.style.display = 'none';
+            
+            if (aesthetic === 'retro-neon') {
+                colorPaletteSelection.style.display = 'block';
+            } else {
+                startGameWithStyle();
+            }
+        }
+
+        function startGameWithPalette(palette) {
+            selectedPalette = palette;
+            colorPaletteSelection.style.display = 'none';
+            startGameWithStyle();
+        }
+
+        function startGameWithStyle() {
+            applyTheme();
+            startGame();
+        }
+
+        function goBackToGameMode() {
+            aestheticSelection.style.display = 'none';
+            difficultySelection.style.display = 'none';
+            dramaticModeSelection.style.display = 'none';
+            gameModeSelection.style.display = 'block';
+        }
+
+        function goBackFromAesthetic() {
+            aestheticSelection.style.display = 'none';
+            dramaticModeSelection.style.display = 'block';
+        }
+
+        function goBackToAesthetic() {
+            colorPaletteSelection.style.display = 'none';
+            aestheticSelection.style.display = 'block';
+        }
+
+        function startGame() {
+            canvas.style.display = 'block';
+            gameControls.style.display = 'block';
+            
+            // Update labels and controls based on game mode
+            if (gameMode === 'player') {
+                leftPlayerLabel.textContent = 'Player 1';
+                rightPlayerLabel.textContent = 'Player 2';
+                controlsText.innerHTML = '<strong>Controls:</strong> Player 1: W/S keys + X to shoot laser | Player 2: ↑/↓ arrows + P to shoot laser | SPACE to pause | R to restart';
+            } else {
+                leftPlayerLabel.textContent = 'Player';
+                const difficultyDisplay = aiDifficulty.charAt(0).toUpperCase() + aiDifficulty.slice(1);
+                rightPlayerLabel.textContent = `AI (${difficultyDisplay})`;
+                controlsText.innerHTML = '<strong>Controls:</strong> W/S keys to move + X to shoot laser | SPACE to pause | R to restart';
+            }
+            
+            resetBall();
+            gameRunning = true;
+        }
+
+        function fireBullet(side) {
+            if (!gameRunning || gamePaused || gameOver) return;
+            
+            const paddle = side === 'left' ? leftPaddle : rightPaddle;
+            
+            // Check if paddle can shoot (after hitting ball and before midfield)
+            if (!paddle.canShoot) return;
+            
+            // Calculate bullet speed (double the current ball speed)
+            const bulletSpeed = Math.sqrt(ball.speedX * ball.speedX + ball.speedY * ball.speedY) * BULLET_SPEED_MULTIPLIER;
+            
+            // Create bullet object
+            const bullet = {
+                x: side === 'left' ? paddle.x + paddle.width : paddle.x,
+                y: paddle.y + paddle.height / 2,
+                radius: 3,
+                speedX: side === 'left' ? bulletSpeed : -bulletSpeed,
+                speedY: 0,
+                owner: side,
+                active: true
+            };
+            
+            bullets.push(bullet);
+            
+            // Disable shooting until next opportunity
+            paddle.canShoot = false;
+        }
+
+        function updateBullets() {
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const bullet = bullets[i];
+                
+                if (!bullet.active) {
+                    bullets.splice(i, 1);
+                    continue;
+                }
+                
+                // Move bullet
+                bullet.x += bullet.speedX;
+                bullet.y += bullet.speedY;
+                
+                // Remove bullet if it goes off screen
+                if (bullet.x < -10 || bullet.x > canvas.width + 10) {
+                    bullets.splice(i, 1);
+                    continue;
+                }
+                
+                // Check collision with ball
+                const distToBall = Math.sqrt(
+                    (bullet.x - ball.x) * (bullet.x - ball.x) + 
+                    (bullet.y - ball.y) * (bullet.y - ball.y)
+                );
+                
+                if (distToBall < bullet.radius + ball.radius) {
+                    // Deflect ball
+                    const angle = Math.atan2(bullet.y - ball.y, bullet.x - ball.x);
+                    const deflectionStrength = dramaticMode ? 8 : 5;
+                    ball.speedX += Math.cos(angle) * deflectionStrength;
+                    ball.speedY += Math.sin(angle) * deflectionStrength;
+                    
+                    // Cap ball speed
+                    const ballSpeed = Math.sqrt(ball.speedX * ball.speedX + ball.speedY * ball.speedY);
+                    if (ballSpeed > ball.maxSpeed) {
+                        ball.speedX = (ball.speedX / ballSpeed) * ball.maxSpeed;
+                        ball.speedY = (ball.speedY / ballSpeed) * ball.maxSpeed;
+                    }
+                    
+                    bullets.splice(i, 1);
+                    continue;
+                }
+                
+                // Check collision with opponent paddle
+                const targetPaddle = bullet.owner === 'left' ? rightPaddle : leftPaddle;
+                
+                if (bullet.x >= targetPaddle.x && 
+                    bullet.x <= targetPaddle.x + targetPaddle.width &&
+                    bullet.y >= targetPaddle.y && 
+                    bullet.y <= targetPaddle.y + targetPaddle.height) {
+                    
+                    // Stun the paddle
+                    targetPaddle.stunned = true;
+                    targetPaddle.stunTimer = PADDLE_STUN_DURATION;
+                    
+                    bullets.splice(i, 1);
+                }
+            }
+        }
+
+        function updatePaddleStun() {
+            // Update left paddle stun
+            if (leftPaddle.stunned) {
+                leftPaddle.stunTimer--;
+                if (leftPaddle.stunTimer <= 0) {
+                    leftPaddle.stunned = false;
+                }
+            }
+            
+            // Update right paddle stun
+            if (rightPaddle.stunned) {
+                rightPaddle.stunTimer--;
+                if (rightPaddle.stunTimer <= 0) {
+                    rightPaddle.stunned = false;
+                }
+            }
+        }
+
+        function checkShootingOpportunity() {
+            // Left paddle can shoot if ball is moving right and hasn't crossed midfield
+            if (ball.speedX > 0 && ball.x < midFieldLine) {
+                leftPaddle.canShoot = true;
+            } else if (ball.speedX < 0) {
+                leftPaddle.canShoot = false;
+            }
+            
+            // Right paddle can shoot if ball is moving left and hasn't crossed midfield
+            if (ball.speedX < 0 && ball.x > midFieldLine) {
+                rightPaddle.canShoot = true;
+            } else if (ball.speedX > 0) {
+                rightPaddle.canShoot = false;
+            }
+        }
+
+        function aiDecideShoot() {
+            if (!gameRunning || gamePaused || gameOver) return;
+            if (!rightPaddle.canShoot) return;
+            
+            // AI decision making based on difficulty and game state
+            let shouldShoot = false;
+            const ballSpeed = Math.sqrt(ball.speedX * ball.speedX + ball.speedY * ball.speedY);
+            const distanceToPaddle = Math.abs(ball.x - rightPaddle.x);
+            
+            switch(aiDifficulty) {
+                case 'easy':
+                    // Randomly shoots 10% of the time when opportunity arises
+                    shouldShoot = Math.random() < 0.1;
+                    break;
+                    
+                case 'normal':
+                    // Shoots when ball is fast or close, 25% chance
+                    shouldShoot = (ballSpeed > 8 || distanceToPaddle < 200) && Math.random() < 0.25;
+                    break;
+                    
+                case 'expert':
+                    // Strategic shooting - targets ball trajectory and speed
+                    const willHitPaddle = Math.abs(ball.y + (ball.speedY * (distanceToPaddle / Math.abs(ball.speedX))) - (rightPaddle.y + rightPaddle.height/2)) < 30;
+                    shouldShoot = (ballSpeed > 6 || willHitPaddle) && Math.random() < 0.4;
+                    break;
+            }
+            
+            if (shouldShoot) {
+                fireBullet('right');
+            }
+        }
+
+        function resetBall() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            
+            // Random direction but ensure minimum speed
+            const angle = (Math.random() - 0.5) * Math.PI * 0.5; // ±45 degrees
+            const direction = Math.random() < 0.5 ? 1 : -1;
+            
+            if (dramaticMode) {
+                // Dramatic mode - higher initial speeds
+                ball.speedX = direction * Math.cos(angle) * 7; // Increased from 5 to 7
+                ball.speedY = Math.sin(angle) * 5; // Increased from 3 to 5
+            } else {
+                // Soft mode - classic speeds
+                ball.speedX = direction * Math.cos(angle) * 5;
+                ball.speedY = Math.sin(angle) * 3;
+            }
+            
+            // Reset paddle shooting abilities
+            leftPaddle.canShoot = false;
+            rightPaddle.canShoot = false;
+            
+            // Clear all bullets
+            bullets.length = 0;
+        }
+
+        function updatePaddles() {
+            if (!gamePaused && !gameOver) {
+                // Player 1 paddle (left) - W/S keys - only if not stunned
+                if (!leftPaddle.stunned) {
+                    if (keys['w'] && leftPaddle.y > 0) {
+                        leftPaddle.y -= leftPaddle.speed;
+                    }
+                    if (keys['s'] && leftPaddle.y < canvas.height - leftPaddle.height) {
+                        leftPaddle.y += leftPaddle.speed;
+                    }
+                }
+
+                // Right paddle - AI or Player 2 - only if not stunned
+                if (!rightPaddle.stunned) {
+                    if (gameMode === 'player') {
+                        // Player 2 paddle (right) - Arrow keys
+                        if (keys['arrowup'] && rightPaddle.y > 0) {
+                            rightPaddle.y -= rightPaddle.speed;
+                        }
+                        if (keys['arrowdown'] && rightPaddle.y < canvas.height - rightPaddle.height) {
+                            rightPaddle.y += rightPaddle.speed;
+                        }
+                    } else {
+                        // AI paddle (right) - behavior varies by difficulty
+                        const paddleCenter = rightPaddle.y + rightPaddle.height / 2;
+                        const ballY = ball.y;
+                        let aiSpeed = rightPaddle.speed;
+                        let reactionThreshold = 10;
+                        let prediction = 0;
+                        
+                        // Adjust AI behavior based on difficulty
+                        switch(aiDifficulty) {
+                            case 'easy':
+                                aiSpeed *= 0.7; // 30% slower
+                                reactionThreshold = 25; // Larger deadzone
+                                prediction = 0; // No prediction
+                                // Add random delays/mistakes
+                                if (Math.random() < 0.1) { // 10% chance to "hesitate"
+                                    aiSpeed *= 0.5;
+                                }
+                                break;
+                                
+                            case 'normal':
+                                // Current default behavior
+                                aiSpeed *= 1.0;
+                                reactionThreshold = 10;
+                                prediction = 0;
+                                break;
+                                
+                            case 'expert':
+                                aiSpeed *= 1.3; // 30% faster
+                                reactionThreshold = 5; // Smaller deadzone
+                                // Add ball trajectory prediction
+                                const timeToReachPaddle = (rightPaddle.x - ball.x) / Math.abs(ball.speedX);
+                                prediction = ball.speedY * timeToReachPaddle * 0.7; // 70% accuracy
+                                break;
+                        }
+                        
+                        const targetY = ballY + prediction;
+                        
+                        if (paddleCenter < targetY - reactionThreshold) {
+                            rightPaddle.y += aiSpeed;
+                        } else if (paddleCenter > targetY + reactionThreshold) {
+                            rightPaddle.y -= aiSpeed;
+                        }
+
+                        // Keep AI paddle within bounds
+                        if (rightPaddle.y < 0) rightPaddle.y = 0;
+                        if (rightPaddle.y > canvas.height - rightPaddle.height) {
+                            rightPaddle.y = canvas.height - rightPaddle.height;
+                        }
+                        
+                        // AI decides whether to shoot
+                        aiDecideShoot();
+                    }
+                }
+            }
+        }
+
+        function updateBall() {
+            if (gamePaused || gameOver) return;
+
+            ball.x += ball.speedX;
+            ball.y += ball.speedY;
+
+            // Ball collision with top and bottom walls
+            if (ball.y <= ball.radius || ball.y >= canvas.height - ball.radius) {
+                ball.speedY = -ball.speedY;
+                ball.y = Math.max(ball.radius, Math.min(canvas.height - ball.radius, ball.y));
+            }
+
+            // Ball collision with paddles
+            // Store previous paddle positions for movement influence
+            if (!leftPaddle.previousY) leftPaddle.previousY = leftPaddle.y;
+            if (!rightPaddle.previousY) rightPaddle.previousY = rightPaddle.y;
+            
+            const leftPaddleMovement = leftPaddle.y - leftPaddle.previousY;
+            const rightPaddleMovement = rightPaddle.y - rightPaddle.previousY;
+            
+            // Left paddle
+            if (ball.x - ball.radius <= leftPaddle.x + leftPaddle.width &&
+                ball.y >= leftPaddle.y &&
+                ball.y <= leftPaddle.y + leftPaddle.height &&
+                ball.speedX < 0) {
+                
+                ball.speedX = -ball.speedX;
+                
+                // Add spin based on where ball hits paddle
+                const hitPos = (ball.y - leftPaddle.y) / leftPaddle.height;
+                
+                if (dramaticMode) {
+                    // DRAMATIC MODE - Enhanced physics
+                    ball.speedY += (hitPos - 0.5) * 6; // Stronger angle effect (increased from 3 to 6)
+                    ball.speedY += leftPaddleMovement * 0.4; // Paddle movement influence
+                    
+                    // Extra power for edge hits
+                    if (Math.abs(hitPos - 0.5) > 0.3) { // 60% from center
+                        ball.speedY *= 1.6;
+                        ball.speedX *= 1.3;
+                    }
+                    
+                    // Faster speed increase
+                    ball.speedX *= 1.18; // Increased from 1.05 to 1.18
+                    ball.speedY *= 1.05;
+                } else {
+                    // SOFT MODE - Classic physics
+                    ball.speedY += (hitPos - 0.5) * 3; // Original angle effect
+                    ball.speedY += leftPaddleMovement * 0.1; // Minimal movement influence
+                    
+                    // Standard edge hits
+                    if (Math.abs(hitPos - 0.5) > 0.35) {
+                        ball.speedY *= 1.2;
+                    }
+                    
+                    // Standard speed increase
+                    ball.speedX *= 1.05;
+                    ball.speedY *= 1.05;
+                }
+                
+                // Cap maximum speed
+                if (Math.abs(ball.speedX) > ball.maxSpeed) {
+                    ball.speedX = ball.speedX > 0 ? ball.maxSpeed : -ball.maxSpeed;
+                }
+                if (Math.abs(ball.speedY) > ball.maxSpeed) {
+                    ball.speedY = ball.speedY > 0 ? ball.maxSpeed : -ball.maxSpeed;
+                }
+                
+                // Enable shooting opportunity after paddle hit
+                leftPaddle.canShoot = true;
+            }
+
+            // Right paddle
+            if (ball.x + ball.radius >= rightPaddle.x &&
+                ball.y >= rightPaddle.y &&
+                ball.y <= rightPaddle.y + rightPaddle.height &&
+                ball.speedX > 0) {
+                
+                ball.speedX = -ball.speedX;
+                
+                // Add spin based on where ball hits paddle
+                const hitPos = (ball.y - rightPaddle.y) / rightPaddle.height;
+                
+                if (dramaticMode) {
+                    // DRAMATIC MODE - Enhanced physics
+                    ball.speedY += (hitPos - 0.5) * 6; // Stronger angle effect
+                    ball.speedY += rightPaddleMovement * 0.4; // Paddle movement influence
+                    
+                    // Extra power for edge hits
+                    if (Math.abs(hitPos - 0.5) > 0.3) {
+                        ball.speedY *= 1.6;
+                        ball.speedX *= 1.3;
+                    }
+                    
+                    // Faster speed increase
+                    ball.speedX *= 1.18;
+                    ball.speedY *= 1.05;
+                } else {
+                    // SOFT MODE - Classic physics
+                    ball.speedY += (hitPos - 0.5) * 3; // Original angle effect
+                    ball.speedY += rightPaddleMovement * 0.1; // Minimal movement influence
+                    
+                    // Standard edge hits
+                    if (Math.abs(hitPos - 0.5) > 0.35) {
+                        ball.speedY *= 1.2;
+                    }
+                    
+                    // Standard speed increase
+                    ball.speedX *= 1.05;
+                    ball.speedY *= 1.05;
+                }
+                
+                // Cap maximum speed
+                if (Math.abs(ball.speedX) > ball.maxSpeed) {
+                    ball.speedX = ball.speedX > 0 ? ball.maxSpeed : -ball.maxSpeed;
+                }
+                if (Math.abs(ball.speedY) > ball.maxSpeed) {
+                    ball.speedY = ball.speedY > 0 ? ball.maxSpeed : -ball.maxSpeed;
+                }
+                
+                // Enable shooting opportunity after paddle hit
+                rightPaddle.canShoot = true;
+            }
+
+            // Store current positions for next frame
+            leftPaddle.previousY = leftPaddle.y;
+            rightPaddle.previousY = rightPaddle.y;
+
+            // Ball out of bounds - scoring
+            if (ball.x < 0) {
+                rightPaddle.score++;
+                aiScoreElement.textContent = rightPaddle.score;
+                resetBall();
+                checkGameEnd();
+            } else if (ball.x > canvas.width) {
+                leftPaddle.score++;
+                playerScoreElement.textContent = leftPaddle.score;
+                resetBall();
+                checkGameEnd();
+            }
+        }
+
+        function checkGameEnd() {
+            const winningScore = 10;
+            
+            if (leftPaddle.score >= winningScore) {
+                const winnerName = gameMode === 'player' ? 'Player 1' : 'You';
+                endGame("CONGRATULATIONS!", winnerName + " Won! Final Score: " + leftPaddle.score + " - " + rightPaddle.score);
+            } else if (rightPaddle.score >= winningScore) {
+                const winnerName = gameMode === 'player' ? 'Player 2' : 'AI';
+                const title = gameMode === 'player' ? "CONGRATULATIONS!" : "GAME OVER!";
+                endGame(title, winnerName + " Won! Final Score: " + leftPaddle.score + " - " + rightPaddle.score);
+            }
+        }
+
+        function endGame(title, message) {
+            gameOver = true;
+            gameOverTitle.textContent = title;
+            gameOverMessage.textContent = message;
+            gameOverOverlay.style.display = 'block';
+        }
+
+        function togglePause() {
+            if (gameOver) return;
+            
+            gamePaused = !gamePaused;
+            pauseOverlay.style.display = gamePaused ? 'block' : 'none';
+        }
+
+        function restartGame() {
+            gameOver = false;
+            gamePaused = false;
+            leftPaddle.score = 0;
+            rightPaddle.score = 0;
+            leftPaddle.y = canvas.height / 2 - leftPaddle.height / 2;
+            rightPaddle.y = canvas.height / 2 - rightPaddle.height / 2;
+            
+            // Reset laser system
+            leftPaddle.stunned = false;
+            leftPaddle.stunTimer = 0;
+            leftPaddle.canShoot = false;
+            rightPaddle.stunned = false;
+            rightPaddle.stunTimer = 0;
+            rightPaddle.canShoot = false;
+            bullets.length = 0;
+            
+            playerScoreElement.textContent = '0';
+            aiScoreElement.textContent = '0';
+            gameOverOverlay.style.display = 'none';
+            pauseOverlay.style.display = 'none';
+            
+            // Show game mode selection again
+            gameRunning = false;
+            canvas.style.display = 'none';
+            gameControls.style.display = 'none';
+            aestheticSelection.style.display = 'none';
+            difficultySelection.style.display = 'none';
+            dramaticModeSelection.style.display = 'none';
+            colorPaletteSelection.style.display = 'none';
+            gameModeSelection.style.display = 'block';
+            
+            // Reset to default theme
+            document.body.style.background = 'linear-gradient(135deg, #1a1a2e, #16213e)';
+        }
+
+        function drawRect(x, y, width, height, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, width, height);
+        }
+
+        function drawCircle(x, y, radius, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawBullets() {
+            const theme = getCurrentTheme();
+            
+            bullets.forEach(bullet => {
+                // Draw bullet with glow effect
+                if (theme.paddleGlow !== 'none') {
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = theme.paddleColor;
+                } else {
+                    ctx.shadowBlur = 0;
+                }
+                
+                drawCircle(bullet.x, bullet.y, bullet.radius, theme.paddleColor);
+            });
+            
+            // Reset shadow
+            ctx.shadowBlur = 0;
+        }
+
+        function drawDashedLine() {
+            const theme = getCurrentTheme();
+            ctx.setLineDash([10, 10]);
+            ctx.strokeStyle = selectedAesthetic === 'classic' ? '#666' : '#444';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function render() {
+            const theme = getCurrentTheme();
+            
+            // Clear canvas
+            ctx.fillStyle = theme.canvasBackground;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw center line
+            drawDashedLine();
+
+            // Draw paddles with appropriate effects (and stun indication)
+            if (theme.paddleGlow !== 'none') {
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = theme.paddleGlow;
+            } else {
+                ctx.shadowBlur = 0;
+            }
+            
+            // Left paddle - red tint if stunned
+            const leftPaddleColor = leftPaddle.stunned ? '#ff6666' : theme.paddleColor;
+            drawRect(leftPaddle.x, leftPaddle.y, leftPaddle.width, leftPaddle.height, leftPaddleColor);
+            
+            // Right paddle - red tint if stunned
+            const rightPaddleColor = rightPaddle.stunned ? '#ff6666' : theme.paddleColor;
+            drawRect(rightPaddle.x, rightPaddle.y, rightPaddle.width, rightPaddle.height, rightPaddleColor);
+
+            // Draw ball with appropriate effects
+            if (theme.ballGlow !== 'none') {
+                ctx.shadowColor = theme.ballGlow;
+            } else {
+                ctx.shadowBlur = 0;
+            }
+            drawCircle(ball.x, ball.y, ball.radius, theme.ballColor);
+            
+            // Draw bullets
+            drawBullets();
+            
+            // Draw shooting opportunity indicators
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+            
+            if (leftPaddle.canShoot) {
+                ctx.fillText('X', leftPaddle.x - 15, leftPaddle.y + leftPaddle.height/2 + 5);
+            }
+            
+            if (rightPaddle.canShoot && gameMode === 'player') {
+                ctx.fillText('P', rightPaddle.x + rightPaddle.width + 10, rightPaddle.y + rightPaddle.height/2 + 5);
+            }
+            
+            // Reset shadow
+            ctx.shadowBlur = 0;
+        }
+
+        function gameLoop() {
+            updatePaddles();
+            updateBall();
+            updateBullets();
+            updatePaddleStun();
+            checkShootingOpportunity();
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize game
+        function init() {
+            // Start with game mode selection
+            gameModeSelection.style.display = 'block';
+            difficultySelection.style.display = 'none';
+            dramaticModeSelection.style.display = 'none';
+            aestheticSelection.style.display = 'none';
+            colorPaletteSelection.style.display = 'none';
+            canvas.style.display = 'none';
+            gameControls.style.display = 'none';
+            gameLoop();
+        }
+
+        // Start the game
+        init();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            // Adjust canvas size for mobile if needed
+            if (window.innerWidth < 768) {
+                canvas.style.maxWidth = '90vw';
+                canvas.style.height = 'auto';
+            }
+        });
+
+        // Prevent arrow keys from scrolling the page
+        window.addEventListener('keydown', (e) => {
+            if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].indexOf(e.code) > -1) {
+                e.preventDefault();
+            }
+        }, false);
+    </script>
+</body>
+</html>
