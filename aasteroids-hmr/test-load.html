@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Debug Test</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 20px;
+        background: #000;
+        color: #fff;
+        font-family: monospace;
+      }
+      #debug-log {
+        border: 1px solid #fff;
+        padding: 10px;
+        margin-bottom: 20px;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="debug-log">Cargando...</div>
+    <div id="game-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    <script>
+      function log(message) {
+        const logDiv = document.getElementById("debug-log");
+        logDiv.innerHTML +=
+          "<div>" + new Date().toLocaleTimeString() + ": " + message + "</div>";
+        logDiv.scrollTop = logDiv.scrollHeight;
+        console.log(message);
+      }
+
+      try {
+        log("Iniciando carga de scripts...");
+
+        // Test básico de Phaser
+        if (typeof Phaser === "undefined") {
+          log("ERROR: Phaser no está cargado");
+        } else {
+          log("✓ Phaser cargado: " + Phaser.VERSION);
+        }
+
+        // Cargar scripts en orden
+        const scripts = [
+          "js/utils/Controls.js",
+          "js/utils/WorldUtils.js",
+          "js/entities/Bullet.js",
+          "js/entities/Ship.js",
+          "js/entities/Asteroid.js",
+          "js/scenes/BootScene.js",
+          "js/scenes/GameScene.js",
+          "js/scenes/UIScene.js",
+          "js/main.js",
+        ];
+
+        let loadedScripts = 0;
+
+        scripts.forEach((src, index) => {
+          const script = document.createElement("script");
+          script.src = src;
+          script.onload = () => {
+            loadedScripts++;
+            log(`✓ Cargado: ${src} (${loadedScripts}/${scripts.length})`);
+
+            if (loadedScripts === scripts.length) {
+              log("✅ Todos los scripts cargados. Iniciando juego...");
+              setTimeout(() => {
+                try {
+                  // El juego se debería iniciar automáticamente por main.js
+                  log("Juego iniciado correctamente");
+                } catch (error) {
+                  log("❌ Error al iniciar juego: " + error.message);
+                }
+              }, 100);
+            }
+          };
+          script.onerror = () => {
+            log(`❌ Error cargando: ${src}`);
+          };
+          document.head.appendChild(script);
+        });
+      } catch (error) {
+        log("❌ Error general: " + error.message);
+      }
+    </script>
+  </body>
+</html>
