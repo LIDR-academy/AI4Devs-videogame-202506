@@ -1,0 +1,15 @@
+{
+  "name": "ai4devs-videogame-202506",
+  "version": "1.0.0",
+  "description": "Como ejercicio final de la introducción, usa lo aprendido para crear un **videojuego** con HTML, CSS y JavaScript.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "phaser": "^3.90.0"
+  }
+}
