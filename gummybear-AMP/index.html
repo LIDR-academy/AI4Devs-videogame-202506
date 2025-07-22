@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gummybear Endless Runner</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Howler.js (opcional) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+  <!-- p5.js (opcional, comentar si no se usa) -->
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script> -->
+</head>
+<body>
+  <main>
+    <!-- Encabezado y pantallas superpuestas -->
+    <section id="pantalla-principal" class="pantalla-principal"></section>
+    <section id="pantalla-nombre" class="pantalla-nombre" style="display:none;"></section>
+    <section id="pantalla-seleccion" class="pantalla-seleccion" style="display:none;"></section>
+    <section id="pantalla-instrucciones" class="pantalla-instrucciones" style="display:none;"></section>
+    <section id="pantalla-fin" class="pantalla-fin" style="display:none;"></section>
+    <!-- Canvas de juego -->
+    <canvas id="game-canvas" width="1280" height="720" class="pantalla-juego" style="display:none;"></canvas>
+  </main>
+  <script src="main.js"></script>
+</body>
+</html> 
