@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TerraCresta Clone</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        #game-container {
+            max-width: 384px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="loading-screen" class="loading-screen">
+            <h1>TerraCresta Clone</h1>
+            <div class="loading-spinner"></div>
+            <p>Loading...</p>
+        </div>
+        
+        <div id="menu-overlay" class="menu-overlay hidden">
+            <div class="menu-content">
+                <h1>TerraCresta Clone</h1>
+                <div class="instructions">
+                    <h2>How to Play</h2>
+                    <p><strong>Movement:</strong> Arrow Keys or WASD</p>
+                    <p><strong>Shoot:</strong> Spacebar</p>
+                    <p><strong>Lives:</strong> You start with 3 lives</p>
+                    <p><strong>Ship Parts:</strong> Collect up to 4 parts to become the Phoenix!</p>
+                    <p><strong>Damage System:</strong> Parts are lost before lives when hit</p>
+                </div>
+                <button id="start-button" class="game-button">Start Game</button>
+            </div>
+        </div>
+        
+        <div id="game-over-overlay" class="menu-overlay hidden">
+            <div class="menu-content">
+                <h1>Game Over</h1>
+                <div id="final-score"></div>
+                <div id="high-score"></div>
+                <button id="restart-button" class="game-button">Play Again</button>
+                <button id="menu-button" class="game-button">Main Menu</button>
+            </div>
+        </div>
+        
+        <div id="hud" class="hud hidden">
+            <div class="hud-left">
+                <div class="hud-item">
+                    <span class="hud-label">Lives:</span>
+                    <span id="lives-counter">3</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Parts:</span>
+                    <span id="parts-counter">0</span>
+                </div>
+            </div>
+            <div class="hud-right">
+                <div class="hud-item">
+                    <span class="hud-label">Score:</span>
+                    <span id="score-counter">0</span>
+                </div>
+                <div class="hud-item">
+                    <span id="phoenix-status" class="phoenix-status hidden">PHOENIX MODE!</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phaser 3 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    <script src="game.js"></script>
+</body>
+</html> 
