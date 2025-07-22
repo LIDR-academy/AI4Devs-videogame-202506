@@ -38,7 +38,7 @@ def create_index_html(base_path):
             file.write(f'           <div class="game-card"> {game_name} </div>\n')
             file.write('           </a>\n')
 
-  
+        file.write('    </main>\n')
         file.write('    </div>\n')
         file.write('    <footer>\n')
         file.write('        <p>© AI4Devs students</p>\n')
