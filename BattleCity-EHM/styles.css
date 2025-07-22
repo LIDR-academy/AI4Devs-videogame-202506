@@ -1,0 +1,267 @@
+html {
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+*, *:before, *:after {
+    box-sizing: inherit;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Courier New', monospace;
+    background-color: #1a1a1a;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 2px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin: 0;
+}
+
+.game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #2a2a2a;
+    border: 2px solid #444;
+    border-radius: 8px;
+    padding: 3px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    width: fit-content;
+    min-height: 100vh;
+    overflow: visible;
+    box-sizing: border-box;
+}
+
+.game-header {
+    width: 100%;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+.game-header h1 {
+    font-size: 1.2em;
+    color: #ffff00;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    margin-bottom: 3px;
+}
+
+.game-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #333;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-bottom: 3px;
+    border: 1px solid #555;
+    font-size: 0.85em;
+}
+
+.player-info {
+    display: flex;
+    gap: 40px;
+}
+
+.player1-info, .player2-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.player1-info span:first-child, .player2-info span:first-child {
+    color: #ffff00;
+    font-weight: bold;
+}
+
+.lives {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.tank-icon {
+    font-size: 1.2em;
+}
+
+.level-info, .enemies-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.level-info span:first-child, .enemies-info span:first-child {
+    color: #ffff00;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+#enemy-count {
+    color: #ff6600;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+#gameCanvas {
+    border: 2px solid #000;
+    background-color: #000;
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    margin: 5px auto;
+    box-sizing: border-box;
+    object-fit: contain;
+}
+
+/* Reglas mínimas para evitar desbordamiento */
+.game-container {
+    position: relative;
+    contain: layout style paint;
+}
+
+#gameCanvas {
+    display: block !important;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+.game-controls {
+    margin-top: 8px;
+    text-align: center;
+    width: 100%;
+}
+
+.instructions {
+    background-color: #333;
+    padding: 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.instructions h3 {
+    color: #ffff00;
+    margin-bottom: 6px;
+    font-size: 0.9em;
+}
+
+.instructions p {
+    margin: 3px 0;
+    font-size: 0.8em;
+}
+
+.game-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+button {
+    padding: 6px 12px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 0.85em;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #444;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button:hover:not(:disabled) {
+    background-color: #555;
+    border-color: #777;
+    transform: translateY(-2px);
+}
+
+button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#startButton {
+    background-color: #006600;
+    border-color: #008800;
+}
+
+#startButton:hover:not(:disabled) {
+    background-color: #008800;
+    border-color: #00aa00;
+}
+
+#pauseButton {
+    background-color: #666600;
+    border-color: #888800;
+}
+
+#pauseButton:hover:not(:disabled) {
+    background-color: #888800;
+    border-color: #aaaa00;
+}
+
+#restartButton {
+    background-color: #660000;
+    border-color: #880000;
+}
+
+#restartButton:hover:not(:disabled) {
+    background-color: #880000;
+    border-color: #aa0000;
+}
+
+
+
+/* Estilos para el menú de selección de jugadores */
+#playerSelectionMenu button {
+    transition: all 0.3s ease;
+}
+
+#playerSelectionMenu button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+#singlePlayerButton:hover {
+    background-color: #45a049 !important;
+}
+
+#multiPlayerButton:hover {
+    background-color: #1976D2 !important;
+}
+
+#playerSelectionMenu button:active {
+    transform: scale(0.98);
+}
+
+/* Estilos para la pantalla de carga */
+#loadingScreen {
+    z-index: 1000;
+}
+
+#playerSelectionMenu {
+    z-index: 1000;
+}
+
+#levelStatsScreen {
+    z-index: 1000;
+}
+
+
