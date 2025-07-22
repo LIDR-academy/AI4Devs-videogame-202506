@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Asteroids Game</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #000;
+        font-family: Arial, sans-serif;
+      }
+      #game-container {
+        border: 2px solid #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game-container"></div>
+
+    <!-- Phaser 3 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+
+    <!-- Game Scripts -->
+    <script src="js/utils/Controls.js"></script>
+    <script src="js/utils/WorldUtils.js"></script>
+    <script src="js/entities/Bullet.js"></script>
+    <script src="js/entities/Ship.js"></script>
+    <script src="js/entities/Asteroid.js"></script>
+    <script src="js/scenes/MenuScene.js"></script>
+    <script src="js/scenes/BootScene.js"></script>
+    <script src="js/scenes/GameScene.js"></script>
+    <script src="js/scenes/UIScene.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>

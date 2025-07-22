@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Bird Clone</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas" width="400" height="600"></canvas>
+        <div id="ui-overlay">
+            <button id="play-btn">
+                <img src="assets/buton.png" alt="Play">
+            </button>
+            <div id="game-over" class="hidden">
+                <div id="summary"></div>
+                <button id="retry-btn">
+                    <img src="assets/buton.png" alt="Retry">
+                </button>
+            </div>
+            <div id="score">0</div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

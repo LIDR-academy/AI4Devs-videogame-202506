@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iron Man vs Ultron - Plataformas</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="game-container">
+        <h1>Iron Man vs Ultron</h1>
+        <div id="game-canvas"></div>
+        <div id="controls-info">
+            <p><strong>Controles:</strong></p>
+            <p>Movimiento: WASD o Flechas | Salto: Espacio | Disparo: Clic o X | Pausa: P</p>
+        </div>
+    </div>
+
+    <!-- Phaser 3 desde CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.85.2/dist/phaser.min.js"></script>
+    
+    <!-- Scripts del juego -->
+    <script src="js/scenes/MenuScene.js"></script>
+    <script src="js/scenes/GameScene.js"></script>
+    <script src="js/scenes/GameOverScene.js"></script>
+    <script src="js/entities/Player.js"></script>
+    <script src="js/entities/Enemy.js"></script>
+    <script src="js/entities/Coin.js"></script>
+    <script src="js/entities/PowerUp.js"></script>
+    <script src="js/utils/AudioManager.js"></script>
+    <script src="js/utils/UIManager.js"></script>
+    <script src="js/utils/SaveManager.js"></script>
+    <script src="js/utils/LevelGenerator.js"></script>
+    <script src="js/utils/BackgroundManager.js"></script>
+    <script src="js/utils/PlatformManager.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html> 
