@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GalaxyGT - Juego Espacial</title>
+    <script src="sounds.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: white;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: linear-gradient(to bottom, #000033, #000066);
+        }
+        
+        #gameCanvas {
+            border: 2px solid #00ff00;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        #gameInfo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 18px;
+            color: #00ff00;
+        }
+        
+        #startScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 40px;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+        }
+        
+        #startButton {
+            background-color: #00ff00;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        
+        #startButton:hover {
+            background-color: #00cc00;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="gameInfo">
+            <div>Score: <span id="score">0</span></div>
+            <div>Lives: <span id="lives">3</span></div>
+            <div>Level: <span id="level">1</span></div>
+        </div>
+        
+        <div id="startScreen">
+            <h1>GalaxyGT</h1>
+            <p>¡Explora la galaxia y sobrevive!</p>
+            <button id="startButton">Iniciar Juego</button>
+        </div>
+        
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+    </div>
+
+    <script>
+        // Variables del juego
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startScreen = document.getElementById('startScreen');
+        const startButton = document.getElementById('startButton');
+        const scoreElement = document.getElementById('score');
+        const livesElement = document.getElementById('lives');
+        const levelElement = document.getElementById('level');
+        
+        let gameRunning = false;
+        let score = 0;
+        let lives = 3;
+        let level = 1;
+        let levelTransitioning = false; // Bandera para evitar múltiples transiciones de nivel
+        
+        // Variables del jugador
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height - 60,
+            width: 40,
+            height: 40,
+            speed: 5,
+            color: '#00ff00'
+        };
+        
+        // Variables de movimiento
+        const keys = {
+            ArrowLeft: false,
+            ArrowRight: false,
+            ArrowUp: false,
+            ArrowDown: false,
+            Space: false
+        };
+        
+        // Array de balas del jugador
+        let bullets = [];
+        
+        // Array de balas de enemigos
+        let enemyBullets = [];
+        
+        // Configuración de balas del jugador
+        const bulletConfig = {
+            width: 4,
+            height: 12,
+            speed: 8,
+            color: '#ffff00'
+        };
+        
+        // Configuración de balas de enemigos
+        const enemyBulletConfig = {
+            width: 4,
+            height: 12,
+            speed: 3,
+            color: '#ff0000'
+        };
+        
+        // Array de enemigos
+        let enemies = [];
+        
+        // Configuración de enemigos
+        const enemyConfig = {
+            width: 30,
+            height: 30,
+            speed: 1,
+            color: '#ffaa00'
+        };
+        
+        // Variables para el movimiento de enemigos
+        let enemyDirection = 1; // 1 = derecha, -1 = izquierda
+        let enemyDropDistance = 15;
+        let enemyCircleAngle = 0; // Ángulo global para movimiento circular en nivel 5
+        
+        // Función para crear una bala
+        function createBullet() {
+            bullets.push({
+                x: player.x + player.width / 2 - bulletConfig.width / 2,
+                y: player.y,
+                width: bulletConfig.width,
+                height: bulletConfig.height,
+                speed: bulletConfig.speed,
+                color: bulletConfig.color
+            });
+            
+            // Reproducir sonido de disparo
+            playPlayerShootSound();
+        }
+        
+        // Función para crear enemigos
+        function createEnemies() {
+            const rows = 3;
+            const cols = 8;
+            const startX = 80;
+            const startY = 80;
+            const spacingX = 70;
+            const spacingY = 50;
+            
+            enemies = []; // Limpiar array de enemigos
+            
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    enemies.push({
+                        x: startX + col * spacingX,
+                        y: startY + row * spacingY,
+                        originalX: startX + col * spacingX, // Posición original para movimiento circular
+                        originalY: startY + row * spacingY, // Posición original para movimiento circular
+                        circleAngle: Math.random() * Math.PI * 2, // Ángulo individual para cada enemigo
+                        width: enemyConfig.width,
+                        height: enemyConfig.height,
+                        speed: enemyConfig.speed,
+                        color: enemyConfig.color,
+                        alive: true
+                    });
+                }
+            }
+        }
+        
+        // Función para verificar si todos los enemigos han sido eliminados
+        function checkLevelComplete() {
+            if (levelTransitioning) return; // Evitar múltiples transiciones
+            
+            const aliveEnemies = enemies.filter(enemy => enemy.alive);
+            if (aliveEnemies.length === 0) {
+                levelTransitioning = true; // Marcar que estamos en transición
+                nextLevel();
+            }
+        }
+        
+        // Función para que los enemigos disparen
+        function enemyShoot() {
+            if (level < 3) return; // Solo disparan desde el nivel 3
+            
+            const aliveEnemies = enemies.filter(enemy => enemy.alive);
+            if (aliveEnemies.length === 0) return;
+            
+            // Limitar a máximo 5 balas de enemigos simultáneas
+            if (enemyBullets.length >= 5) return;
+            
+            // Seleccionar un enemigo aleatorio para disparar
+            const randomEnemy = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
+            
+            // Crear bala de enemigo
+            enemyBullets.push({
+                x: randomEnemy.x + randomEnemy.width / 2 - enemyBulletConfig.width / 2,
+                y: randomEnemy.y + randomEnemy.height,
+                width: enemyBulletConfig.width,
+                height: enemyBulletConfig.height,
+                speed: enemyBulletConfig.speed,
+                color: enemyBulletConfig.color
+            });
+        }
+        
+        // Función para avanzar al siguiente nivel
+        function nextLevel() {
+            level++;
+            levelElement.textContent = level;
+            
+            // Verificar si se completaron los 5 niveles
+            if (level > 5) {
+                gameWon();
+                return;
+            }
+            
+            // Mostrar mensaje de siguiente nivel
+            showLevelMessage();
+            
+            // Crear nuevos enemigos después de un breve delay
+            setTimeout(() => {
+                createEnemies();
+                levelTransitioning = false; // Resetear la bandera cuando se crean nuevos enemigos
+            }, 2000);
+        }
+        
+        // Función para cuando el jugador gana el juego
+        function gameWon() {
+            gameRunning = false;
+            
+            // Reproducir sonido de victoria
+            playVictorySound();
+            
+            // Esperar un poco antes de mostrar el mensaje para que se escuche el sonido
+            setTimeout(() => {
+                alert(`¡Felicidades! ¡Has completado todos los niveles!\nPuntuación final: ${score}`);
+                location.reload();
+            }, 1500);
+        }
+        
+        // Función para mostrar mensaje de nivel
+        function showLevelMessage() {
+            // Crear elemento de mensaje
+            const messageDiv = document.createElement('div');
+            messageDiv.id = 'levelMessage';
+            
+            // Mensaje especial para el nivel 5
+            if (level === 5) {
+                messageDiv.innerHTML = `
+                    <h2>¡Nivel 4 Completado!</h2>
+                    <p>¡Has llegado al Nivel 5!</p>
+                    <p style="color: #ff0000; font-weight: bold;">⚠️ ¡CUIDADO! Los enemigos ahora se mueven en círculos ⚠️</p>
+                    <p style="color: #ffff00; font-weight: bold;">🎯 Los enemigos están limitados a la mitad superior del campo</p>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <h2>¡Nivel ${level - 1} Completado!</h2>
+                    <p>¡Has avanzado al Nivel ${level}!</p>
+                `;
+            }
+            messageDiv.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background-color: rgba(0, 0, 0, 0.9);
+                color: #00ff00;
+                padding: 30px;
+                border: 3px solid #00ff00;
+                border-radius: 15px;
+                text-align: center;
+                font-size: 24px;
+                z-index: 1000;
+            `;
+            
+            document.getElementById('gameContainer').appendChild(messageDiv);
+            
+            // Remover mensaje después de 2 segundos
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.parentNode.removeChild(messageDiv);
+                }
+            }, 2000);
+        }
+        
+        // Función para actualizar enemigos
+        function updateEnemies() {
+            // Actualizar posición de enemigos
+            enemies.forEach(enemy => {
+                if (enemy.alive) {
+                    if (level === 5) {
+                        // En nivel 5: movimiento limitado + circular
+                        updateEnemyLimitedMovement(enemy);
+                        updateEnemyCircularMovement(enemy);
+                    } else {
+                        // Movimiento normal de rebote horizontal
+                        updateEnemyNormalMovement(enemy);
+                    }
+                }
+            });
+        }
+        
+        // Función para movimiento normal de enemigos (niveles 1-4)
+        function updateEnemyNormalMovement(enemy) {
+            // Mover horizontalmente
+            enemy.x += enemyConfig.speed * enemyDirection;
+            
+            // Si toca un borde, cambiar dirección inmediatamente
+            if (enemy.x <= 0) {
+                enemy.x = 0;
+                enemyDirection = 1; // Ir hacia la derecha
+            } else if (enemy.x + enemy.width >= canvas.width) {
+                enemy.x = canvas.width - enemy.width;
+                enemyDirection = -1; // Ir hacia la izquierda
+            }
+        }
+        
+        // Función para movimiento limitado de enemigos (nivel 5)
+        function updateEnemyLimitedMovement(enemy) {
+            // Mover horizontalmente
+            enemy.x += enemyConfig.speed * enemyDirection;
+            
+            // Limitar movimiento horizontal a todo el ancho del canvas
+            if (enemy.x <= 0) {
+                enemy.x = 0;
+                enemyDirection = 1; // Ir hacia la derecha
+            } else if (enemy.x + enemy.width >= canvas.width) {
+                enemy.x = canvas.width - enemy.width;
+                enemyDirection = -1; // Ir hacia la izquierda
+            }
+            
+            // Limitar movimiento vertical a la mitad superior del canvas
+            const halfCanvasHeight = canvas.height / 2;
+            if (enemy.y < 0) {
+                enemy.y = 0;
+            } else if (enemy.y + enemy.height > halfCanvasHeight) {
+                enemy.y = halfCanvasHeight - enemy.height;
+            }
+        }
+        
+        // Función para movimiento circular de enemigos (nivel 5)
+        function updateEnemyCircularMovement(enemy) {
+            const radius = 35; // Radio del círculo más amplio
+            const speed = 0.015; // Velocidad del movimiento circular
+            
+            // Calcular offset circular usando el ángulo individual del enemigo
+            const circleOffsetX = Math.cos(enemy.circleAngle) * radius;
+            const circleOffsetY = Math.sin(enemy.circleAngle) * radius;
+            
+            // Aplicar el movimiento circular sobre la posición actual
+            enemy.x += circleOffsetX * 0.1; // Factor de suavizado
+            enemy.y += circleOffsetY * 0.1; // Factor de suavizado
+            
+            // Incrementar ángulo individual del enemigo
+            enemy.circleAngle += speed;
+        }
+        
+        // Función para dibujar enemigos
+        function drawEnemies() {
+            enemies.forEach(enemy => {
+                if (enemy.alive) {
+                    // Efecto especial para nivel 5 (enemigos más difíciles)
+                    if (level === 5) {
+                        // Aura roja para indicar dificultad
+                        ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+                        ctx.fillRect(enemy.x - 5, enemy.y - 5, enemy.width + 10, enemy.height + 10);
+                    }
+                    
+                    // Cuerpo principal de la abeja
+                    ctx.fillStyle = enemy.color;
+                    ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                    
+                    // Rayas negras de la abeja
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(enemy.x + 5, enemy.y + 5, enemy.width - 10, 3);
+                    ctx.fillRect(enemy.x + 5, enemy.y + 15, enemy.width - 10, 3);
+                    ctx.fillRect(enemy.x + 5, enemy.y + 25, enemy.width - 10, 3);
+                    
+                    // Ojos de la abeja
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(enemy.x + 8, enemy.y + 8, 4, 4);
+                    ctx.fillRect(enemy.x + 18, enemy.y + 8, 4, 4);
+                    
+                    // Pupilas
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(enemy.x + 9, enemy.y + 9, 2, 2);
+                    ctx.fillRect(enemy.x + 19, enemy.y + 9, 2, 2);
+                    
+                    // Alas de la abeja
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(enemy.x - 5, enemy.y + 5, 8, 12);
+                    ctx.fillRect(enemy.x + enemy.width - 3, enemy.y + 5, 8, 12);
+                    
+                    // Efecto adicional para nivel 5: ojos rojos
+                    if (level === 5) {
+                        ctx.fillStyle = '#ff0000';
+                        ctx.fillRect(enemy.x + 9, enemy.y + 9, 2, 2);
+                        ctx.fillRect(enemy.x + 19, enemy.y + 9, 2, 2);
+                    }
+                }
+            });
+        }
+        
+        // Función para actualizar balas del jugador
+        function updateBullets() {
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                bullets[i].y -= bullets[i].speed;
+                
+                // Eliminar balas que salen de la pantalla
+                if (bullets[i].y + bullets[i].height < 0) {
+                    bullets.splice(i, 1);
+                }
+            }
+        }
+        
+        // Función para actualizar balas de enemigos
+        function updateEnemyBullets() {
+            for (let i = enemyBullets.length - 1; i >= 0; i--) {
+                enemyBullets[i].y += enemyBullets[i].speed;
+                
+                // Eliminar balas que salen de la pantalla
+                if (enemyBullets[i].y > canvas.height) {
+                    enemyBullets.splice(i, 1);
+                }
+            }
+        }
+        
+        // Función para detectar colisiones
+        function checkCollisions() {
+            // Colisiones entre balas del jugador y enemigos
+            bullets.forEach((bullet, bulletIndex) => {
+                enemies.forEach(enemy => {
+                    if (enemy.alive && 
+                        bullet.x < enemy.x + enemy.width &&
+                        bullet.x + bullet.width > enemy.x &&
+                        bullet.y < enemy.y + enemy.height &&
+                        bullet.y + bullet.height > enemy.y) {
+                        
+                        // Colisión detectada
+                        enemy.alive = false;
+                        bullets.splice(bulletIndex, 1);
+                        score += 10;
+                        scoreElement.textContent = score;
+                        
+                        // Reproducir sonido de destrucción de enemigo
+                        playEnemyDestroySound();
+                    }
+                });
+            });
+            
+            // Colisiones entre balas de enemigos y jugador
+            enemyBullets.forEach((enemyBullet, bulletIndex) => {
+                if (enemyBullet.x < player.x + player.width &&
+                    enemyBullet.x + enemyBullet.width > player.x &&
+                    enemyBullet.y < player.y + player.height &&
+                    enemyBullet.y + enemyBullet.height > player.y) {
+                    
+                    // Colisión detectada - jugador pierde una vida
+                    enemyBullets.splice(bulletIndex, 1);
+                    lives--;
+                    livesElement.textContent = lives;
+                    
+                    // Reproducir sonido de pérdida de vida
+                    playLoseLifeSound();
+                    
+                    if (lives <= 0) {
+                        gameOver();
+                    }
+                }
+            });
+            
+            // Verificar si algún enemigo llegó muy cerca del jugador
+            enemies.forEach(enemy => {
+                if (enemy.alive && enemy.y + enemy.height >= player.y - 20) {
+                    gameOver();
+                }
+            });
+        }
+        
+        // Función de game over
+        function gameOver() {
+            gameRunning = false;
+            alert(`Game Over! Tu puntuación final fue: ${score}`);
+            location.reload();
+        }
+        
+        // Función para dibujar balas del jugador
+        function drawBullets() {
+            bullets.forEach(bullet => {
+                ctx.fillStyle = bullet.color;
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                
+                // Efecto de brillo
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(bullet.x + 1, bullet.y + 1, bullet.width - 2, 2);
+            });
+        }
+        
+        // Función para dibujar balas de enemigos
+        function drawEnemyBullets() {
+            enemyBullets.forEach(bullet => {
+                ctx.fillStyle = bullet.color;
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                
+                // Efecto de brillo rojo
+                ctx.fillStyle = '#ff6666';
+                ctx.fillRect(bullet.x + 1, bullet.y + 1, bullet.width - 2, 2);
+            });
+        }
+        
+        // Función para dibujar la nave del jugador
+        function drawPlayer() {
+            // Cuerpo principal de la nave
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            
+            // Detalles de la nave
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(player.x + 5, player.y + 5, player.width - 10, 5);
+            ctx.fillRect(player.x + 10, player.y + 15, player.width - 20, 5);
+            
+            // Motor de la nave
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(player.x + 5, player.y + 30, 8, 10);
+            ctx.fillRect(player.x + player.width - 13, player.y + 30, 8, 10);
+            
+            // Cabina
+            ctx.fillStyle = '#00ffff';
+            ctx.fillRect(player.x + 12, player.y + 8, 16, 12);
+        }
+        
+        // Función para actualizar la posición del jugador
+        function updatePlayer() {
+            if (keys.ArrowLeft && player.x > 0) {
+                player.x -= player.speed;
+            }
+            if (keys.ArrowRight && player.x < canvas.width - player.width) {
+                player.x += player.speed;
+            }
+            if (keys.ArrowUp && player.y > 0) {
+                player.y -= player.speed;
+            }
+            if (keys.ArrowDown && player.y < canvas.height - player.height) {
+                player.y += player.speed;
+            }
+        }
+        
+        // Función para iniciar el juego
+        function startGame() {
+            // Inicializar audio
+            initAudio();
+            
+            gameRunning = true;
+            startScreen.style.display = 'none';
+            createEnemies();
+            gameLoop();
+        }
+        
+        // Bucle principal del juego
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Función de actualización del juego
+        function update() {
+            updatePlayer();
+            updateBullets();
+            updateEnemyBullets();
+            updateEnemies();
+            enemyShoot();
+            checkCollisions();
+            checkLevelComplete();
+        }
+        
+        // Función de dibujo
+        function draw() {
+            // Limpiar canvas
+            ctx.fillStyle = '#000033';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Dibujar línea límite en el nivel 5
+            if (level === 5) {
+                drawLevel5Boundary();
+            }
+            
+            // Dibujar elementos del juego
+            drawPlayer();
+            drawBullets();
+            drawEnemyBullets();
+            drawEnemies();
+        }
+        
+        // Función para dibujar el límite del nivel 5
+        function drawLevel5Boundary() {
+            const halfCanvasHeight = canvas.height / 2;
+            
+            // Línea límite horizontal roja punteada
+            ctx.strokeStyle = '#ff0000';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]); // Línea punteada
+            ctx.beginPath();
+            ctx.moveTo(0, halfCanvasHeight);
+            ctx.lineTo(canvas.width, halfCanvasHeight);
+            ctx.stroke();
+            ctx.setLineDash([]); // Resetear línea sólida
+        }
+        
+        // Event listeners para teclado
+        document.addEventListener('keydown', (e) => {
+            if (keys.hasOwnProperty(e.code)) {
+                keys[e.code] = true;
+                e.preventDefault();
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            if (keys.hasOwnProperty(e.code)) {
+                keys[e.code] = false;
+                e.preventDefault();
+            }
+        });
+        
+        // Event listener para disparar
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && gameRunning) {
+                createBullet();
+                e.preventDefault();
+            }
+        });
+        
+        // Event listener para el botón de inicio
+        startButton.addEventListener('click', startGame);
+        
+        // Inicializar el juego
+        draw();
+    </script>
+</body>
+</html> 
